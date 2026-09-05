@@ -505,7 +505,7 @@ function renderPicksTable(sortKey = 'total', dir = -1){
     const [num, matchup] = label.split('\n');
     headerHtml += `<th>${num}<br>${matchup}</th>`;
   });
-  headerHtml += `<th class="num">TB Guess</th><th class="num">TB Diff</th><th class="num"></th>`;
+  headerHtml += `<th class="num">TB Guess</th><th class="num">TB Diff</th>`;
   headerRow.innerHTML = headerHtml;
   headerRow.querySelectorAll('th.sortable').forEach(th => {
     th.addEventListener('click', () => {
@@ -538,7 +538,6 @@ function renderPicksTable(sortKey = 'total', dir = -1){
     });
     cells += `<td class="num">${r.tbGuess != null ? r.tbGuess : '—'}</td>`;
     cells += `<td class="num">${r.tbDiff != null ? r.tbDiff : '—'}</td>`;
-    cells += `<td class="rank-cell">${r.rank}</td>`;
     return `<tr>${cells}</tr>`;
   }).join('');
 }
