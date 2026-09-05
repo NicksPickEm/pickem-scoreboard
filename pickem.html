@@ -121,8 +121,8 @@
   .standings-wrap td { word-break: break-word; }
   .standings-wrap th { overflow-wrap: normal; word-break: normal; }
   .standings-wrap td.player-name { position: static; }
-  .standings-wrap th:nth-child(1), .standings-wrap td:nth-child(1) { width: 8%; }
-  .standings-wrap th:nth-child(2), .standings-wrap td:nth-child(2) { width: 24%; }
+  .standings-wrap th:nth-child(1), .standings-wrap td:nth-child(1) { width: 10%; white-space: nowrap; text-align: center; padding-left: 6px; padding-right: 6px; }
+  .standings-wrap th:nth-child(2), .standings-wrap td:nth-child(2) { width: 23%; }
   .standings-wrap th:nth-child(3), .standings-wrap td:nth-child(3) { width: 15%; }
   .standings-wrap th:nth-child(4), .standings-wrap td:nth-child(4) { width: 16%; }
   .standings-wrap th:nth-child(5), .standings-wrap td:nth-child(5) { width: 12%; }
@@ -174,7 +174,7 @@
   }
 
   td.num, th.num { text-align: right; }
-  td.rank-cell { text-align: center; font-weight: 700; color: var(--teal); }
+  td.rank-cell { text-align: center; font-weight: 700; color: var(--teal); padding-left: 6px; padding-right: 6px; }
 
   .pick-cell { position: relative; }
   .pick-cell.correct { background: var(--green-bg) !important; color: var(--green); font-weight: 700; }
