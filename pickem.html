@@ -155,8 +155,8 @@
   tbody tr:nth-child(even) td { background: var(--row-alt); }
   td.player-name { font-weight: 700; color: var(--teal); position: sticky; left: 0; z-index: 1; width: var(--player-col-width); min-width: var(--player-col-width); max-width: var(--player-col-width); padding: 9px 4px; font-size: 12px; }
   th.player-col { position: sticky; left: 0; top: 0; z-index: 4; width: var(--player-col-width); min-width: var(--player-col-width); max-width: var(--player-col-width); padding: 10px 4px; }
-  td.total-col { font-weight: 700; position: sticky; left: var(--player-col-width); z-index: 1; width: var(--total-col-width); min-width: var(--total-col-width); max-width: var(--total-col-width); padding: 9px 3px; }
-  th.total-col { position: sticky; left: var(--player-col-width); top: 0; z-index: 4; width: var(--total-col-width); min-width: var(--total-col-width); max-width: var(--total-col-width); padding: 10px 3px; }
+  td.total-col { font-weight: 700; position: sticky; left: var(--player-col-width); z-index: 1; width: var(--total-col-width); min-width: var(--total-col-width); max-width: var(--total-col-width); padding: 9px 2px; text-align: center; }
+  th.total-col { position: sticky; left: var(--player-col-width); top: 0; z-index: 4; width: var(--total-col-width); min-width: var(--total-col-width); max-width: var(--total-col-width); padding: 10px 2px; text-align: center; }
 
   /* Master sheet game columns: fixed narrow width so several games fit on a phone screen at once */
   #picksTable thead th:not(.player-col):not(.total-col) {
@@ -500,7 +500,7 @@ function renderResultsGrid(){
 
 function renderPicksTable(sortKey = 'total', dir = -1){
   const headerRow = document.getElementById('picksHeaderRow');
-  let headerHtml = `<th class="player-col sortable" data-key="name">Player</th><th class="total-col num sortable" data-key="total">Total</th>`;
+  let headerHtml = `<th class="player-col sortable" data-key="name">Player</th><th class="total-col sortable" data-key="total">Total</th>`;
   DATA.labels.forEach(label => {
     const [num, matchup] = label.split('\n');
     headerHtml += `<th>${num}<br>${matchup}</th>`;
@@ -526,7 +526,7 @@ function renderPicksTable(sortKey = 'total', dir = -1){
   const tbody = document.getElementById('picksBody');
   tbody.innerHTML = sorted.map(r => {
     let cells = `<td class="player-name">${r.name}</td>`;
-    cells += `<td class="total-col num">${r.total}</td>`;
+    cells += `<td class="total-col">${r.total}</td>`;
     r.picks.forEach((pick, i) => {
       const flag = r.flags[i];
       const classes = ['pick-cell'];
