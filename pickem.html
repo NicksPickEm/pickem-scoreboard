@@ -22,8 +22,8 @@
     --ink: #2e3440;
     --muted: #62707c;
     --line: #dde2e6;
-    --player-col-width: 128px;
-    --total-col-width: 56px;
+    --player-col-width: 104px;
+    --total-col-width: 46px;
   }
   html[data-theme="dark"] {
     --slate: #12161c;
@@ -152,10 +152,10 @@
     background: var(--card-bg);
   }
   tbody tr:nth-child(even) td { background: var(--row-alt); }
-  td.player-name { font-weight: 700; color: var(--teal); position: sticky; left: 0; z-index: 1; width: var(--player-col-width); min-width: var(--player-col-width); max-width: var(--player-col-width); padding: 9px 8px; }
-  th.player-col { position: sticky; left: 0; top: 0; z-index: 4; width: var(--player-col-width); min-width: var(--player-col-width); max-width: var(--player-col-width); padding: 10px 8px; }
-  td.total-col { font-weight: 700; position: sticky; left: var(--player-col-width); z-index: 1; width: var(--total-col-width); min-width: var(--total-col-width); max-width: var(--total-col-width); padding: 9px 8px; }
-  th.total-col { position: sticky; left: var(--player-col-width); top: 0; z-index: 4; width: var(--total-col-width); min-width: var(--total-col-width); max-width: var(--total-col-width); padding: 10px 8px; }
+  td.player-name { font-weight: 700; color: var(--teal); position: sticky; left: 0; z-index: 1; width: var(--player-col-width); min-width: var(--player-col-width); max-width: var(--player-col-width); padding: 9px 6px; }
+  th.player-col { position: sticky; left: 0; top: 0; z-index: 4; width: var(--player-col-width); min-width: var(--player-col-width); max-width: var(--player-col-width); padding: 10px 6px; }
+  td.total-col { font-weight: 700; position: sticky; left: var(--player-col-width); z-index: 1; width: var(--total-col-width); min-width: var(--total-col-width); max-width: var(--total-col-width); padding: 9px 4px; }
+  th.total-col { position: sticky; left: var(--player-col-width); top: 0; z-index: 4; width: var(--total-col-width); min-width: var(--total-col-width); max-width: var(--total-col-width); padding: 10px 4px; }
 
   /* Master sheet game columns: fixed narrow width so several games fit on a phone screen at once */
   #picksTable thead th:not(.player-col):not(.total-col) {
@@ -246,7 +246,7 @@
     }
     #picksTable td.pick-cell { width: 76px; min-width: 76px; max-width: 76px; font-size: 11.5px; padding: 6px 6px; }
     #picksTable td.player-name, #picksTable th.player-col { font-size: 11.5px; padding: 6px 5px; }
-    #picksTable td.total-col, #picksTable th.total-col { padding: 6px 5px; }
+    #picksTable td.total-col, #picksTable th.total-col { padding: 6px 4px; }
     .pick-cell.dbl::after { margin-left: 3px; padding: 1px 3px; font-size: 8.5px; }
   }
 </style>
