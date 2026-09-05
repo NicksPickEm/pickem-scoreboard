@@ -117,15 +117,17 @@
   html[data-theme="dark"] .standings-wrap { border-color: var(--teal-bright); }
   .standings-wrap table { table-layout: fixed; width: 100%; }
   .standings-wrap thead th { position: sticky; top: 0; z-index: 3; }
-  .standings-wrap td, .standings-wrap th { white-space: normal; word-break: break-word; }
+  .standings-wrap td, .standings-wrap th { white-space: normal; }
+  .standings-wrap td { word-break: break-word; }
+  .standings-wrap th { overflow-wrap: normal; word-break: normal; }
   .standings-wrap td.player-name { position: static; }
   .standings-wrap th:nth-child(1), .standings-wrap td:nth-child(1) { width: 8%; }
-  .standings-wrap th:nth-child(2), .standings-wrap td:nth-child(2) { width: 26%; }
-  .standings-wrap th:nth-child(3), .standings-wrap td:nth-child(3) { width: 16%; }
-  .standings-wrap th:nth-child(4), .standings-wrap td:nth-child(4) { width: 14%; }
+  .standings-wrap th:nth-child(2), .standings-wrap td:nth-child(2) { width: 24%; }
+  .standings-wrap th:nth-child(3), .standings-wrap td:nth-child(3) { width: 15%; }
+  .standings-wrap th:nth-child(4), .standings-wrap td:nth-child(4) { width: 16%; }
   .standings-wrap th:nth-child(5), .standings-wrap td:nth-child(5) { width: 12%; }
-  .standings-wrap th:nth-child(6), .standings-wrap td:nth-child(6) { width: 12%; }
-  .standings-wrap th:nth-child(7), .standings-wrap td:nth-child(7) { width: 12%; }
+  .standings-wrap th:nth-child(6), .standings-wrap td:nth-child(6) { width: 12.5%; }
+  .standings-wrap th:nth-child(7), .standings-wrap td:nth-child(7) { width: 12.5%; }
   table { border-collapse: collapse; width: 100%; }
   thead th {
     background: var(--slate);
@@ -154,6 +156,22 @@
   th.player-col { position: sticky; left: 0; top: 0; z-index: 4; width: var(--player-col-width); min-width: var(--player-col-width); max-width: var(--player-col-width); }
   td.total-col { font-weight: 700; position: sticky; left: var(--player-col-width); z-index: 1; width: var(--total-col-width); min-width: var(--total-col-width); max-width: var(--total-col-width); }
   th.total-col { position: sticky; left: var(--player-col-width); top: 0; z-index: 4; width: var(--total-col-width); min-width: var(--total-col-width); max-width: var(--total-col-width); }
+
+  /* Master sheet game columns: fixed narrow width so several games fit on a phone screen at once */
+  #picksTable thead th:not(.player-col):not(.total-col) {
+    width: 92px; min-width: 92px; max-width: 92px;
+    white-space: normal; overflow-wrap: normal; word-break: normal;
+  }
+  #picksTable td.pick-cell {
+    width: 92px; min-width: 92px; max-width: 92px;
+    white-space: normal; overflow-wrap: break-word;
+    padding: 8px 8px;
+  }
+  #picksTable thead th.num:last-child,
+  #picksTable thead th.num:nth-last-child(2),
+  #picksTable thead th.num:nth-last-child(3) {
+    width: 60px; min-width: 60px; max-width: 60px;
+  }
 
   td.num, th.num { text-align: right; }
   td.rank-cell { text-align: center; font-weight: 700; color: var(--teal); }
@@ -222,6 +240,13 @@
     thead th, tbody td { padding: 7px 10px; font-size: 12px; }
     h1 { font-size: 26px; }
     .theme-toggle { position: static; display: inline-block; margin-top: 10px; }
+    :root { --player-col-width: 96px; --total-col-width: 52px; }
+    #picksTable thead th:not(.player-col):not(.total-col) {
+      width: 76px; min-width: 76px; max-width: 76px; font-size: 11px; padding: 6px 6px;
+    }
+    #picksTable td.pick-cell { width: 76px; min-width: 76px; max-width: 76px; font-size: 11.5px; padding: 6px 6px; }
+    #picksTable td.player-name, #picksTable th.player-col { font-size: 12px; padding: 6px 8px; }
+    .pick-cell.dbl::after { margin-left: 3px; padding: 1px 3px; font-size: 8.5px; }
   }
 </style>
 </head>
@@ -250,11 +275,11 @@
           <tr>
             <th class="sortable num" data-key="rank">Rank</th>
             <th class="sortable player-col" data-key="name">Player</th>
-            <th class="sortable num" data-key="total">Season Total</th>
-            <th class="sortable num" data-key="pct">Underdog %</th>
-            <th class="sortable num" data-key="weeksWon">Weeks Won</th>
-            <th class="sortable num" data-key="best">Best Week</th>
-            <th class="sortable num" data-key="worst">Worst Week</th>
+            <th class="sortable num" data-key="total">Total</th>
+            <th class="sortable num" data-key="pct">Upset %</th>
+            <th class="sortable num" data-key="weeksWon">Wins</th>
+            <th class="sortable num" data-key="best">Best</th>
+            <th class="sortable num" data-key="worst">Worst</th>
           </tr>
         </thead>
         <tbody id="standingsBody"></tbody>
