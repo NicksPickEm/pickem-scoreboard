@@ -225,6 +225,11 @@
   html[data-theme="dark"] .game-chip .matchup { color: var(--teal-bright); }
   .game-chip .status { color: var(--muted); }
   .game-chip .status.decided { color: var(--green); font-weight: 700; }
+  .game-chip .score-row {
+    display: flex; justify-content: space-between; font-size: 13px; margin-top: 2px;
+  }
+  .game-chip .score-row.winner { font-weight: 700; color: var(--green); }
+  .game-chip .score-row.loser { color: var(--muted); }
 
   footer { margin-top: 26px; text-align: center; font-size: 13px; color: var(--slate); }
   html[data-theme="dark"] footer { color: var(--teal-bright); }
@@ -360,7 +365,7 @@ const RESULTS = {
   13: null,
 };
 const TB_ACTUAL = null;
-const LAST_UPDATED = "Sep 5, 2026, 9:45 PM ET"; // ✏️ you update this each time you edit results
+const LAST_UPDATED = "Sep 5, 2026, 9:50 PM ET"; // ✏️ you update this each time you edit results
 /* ===================================================================== */
 </script>
 
@@ -481,16 +486,36 @@ function renderResultsGrid(){
     const [num, matchup] = label.split('\n');
     const result = RESULTS[i + 1];
     const winner = result ? result.winner : null;
-    let text = 'Not yet played';
-    if (winner) {
-      const loser = DATA.opponents[i].find(t => t !== winner);
-      text = (result.score && loser) ? `${winner} ${result.score} ${loser}` : winner;
+
+    if (!winner) {
+      return `
+        <div class="game-chip">
+          <span class="gnum">Game ${num}</span>
+          <span class="matchup">${matchup}</span>
+          <span class="status">Not yet played</span>
+        </div>
+      `;
     }
+
+    const loser = DATA.opponents[i].find(t => t !== winner);
+    if (!result.score) {
+      return `
+        <div class="game-chip">
+          <span class="gnum">Game ${num}</span>
+          <span class="matchup">${matchup}</span>
+          <span class="status decided">${winner}</span>
+        </div>
+      `;
+    }
+    const parts = result.score.split('-');
+    const winnerScore = parts[0] || '';
+    const loserScore = parts[1] || '';
     return `
       <div class="game-chip">
         <span class="gnum">Game ${num}</span>
         <span class="matchup">${matchup}</span>
-        <span class="status ${winner ? 'decided' : ''}">${text}</span>
+        <div class="score-row winner"><span>${winner}</span><span>${winnerScore}</span></div>
+        <div class="score-row loser"><span>${loser || ''}</span><span>${loserScore}</span></div>
       </div>
     `;
   }).join('');
