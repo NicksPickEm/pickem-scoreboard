@@ -424,7 +424,7 @@ const RESULTS = {
   13: { winner: "SMU", score: "27-24" },
 };
 const TB_ACTUAL = 51;
-const LAST_UPDATED = "Sep 16, 2026, 10:02 AM ET"; // ✏️ you update this each time you edit results
+const LAST_UPDATED = "Sep 16, 2026, 10:09 AM ET"; // ✏️ you update this each time you edit results
 /* ===================================================================== */
 </script>
 
@@ -775,6 +775,9 @@ function renderResultsGridUnified(weekIdx){
 function renderPickGrid(weekIdx, sortKey = 'total', dir = -1){
   const cfg = WEEKS_CONFIG[weekIdx];
   const revealed = cfg.hasReveal ? computeDayReveal(cfg.data) : cfg.data.labels.map(() => true);
+  // Tiebreaker guesses stay hidden until every game in the week has unlocked
+  // (i.e. until Saturday noon ET), so nobody can see others' guesses early.
+  const tbRevealed = cfg.hasReveal ? revealed.every(r => r) : true;
 
   document.getElementById('pickGridNote').textContent = `Every player's picks for Week ${cfg.num}. ${cfg.noteText}`;
 
@@ -823,8 +826,14 @@ function renderPickGrid(weekIdx, sortKey = 'total', dir = -1){
       const text = pick && pick !== 'NO PICK' ? pick : `<span class="no-pick">—</span>`;
       cells += `<td class="${classes.join(' ')}">${text}</td>`;
     });
-    cells += `<td class="num">${r.tbGuess != null ? r.tbGuess : '—'}</td>`;
-    cells += `<td class="num">${r.tbDiff != null ? r.tbDiff : '—'}</td>`;
+    if (tbRevealed) {
+      cells += `<td class="num">${r.tbGuess != null ? r.tbGuess : '—'}</td>`;
+      cells += `<td class="num">${r.tbDiff != null ? r.tbDiff : '—'}</td>`;
+    } else {
+      const hasGuess = typeof r.tbGuess === 'number';
+      cells += `<td class="num pick-cell locked">${hasGuess ? '🔒' : '<span class="no-pick">—</span>'}</td>`;
+      cells += `<td class="num pick-cell locked">${hasGuess ? '🔒' : '<span class="no-pick">—</span>'}</td>`;
+    }
     return `<tr>${cells}</tr>`;
   }).join('');
 }
