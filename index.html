@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Synergy Survivor — NFL Pool Tracker</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600&display=swap');
+  /* Daylight — light theme (matched to Midnight) */
+  :root {
+    --plane:#EEF2F8; --surface:#FFFFFF; --surface-2:#E9EFF7;
+    --ink:#0E1626; --ink-2:#43506A; --muted:#76839A;
+    --grid:#E1E7F0; --line:#CBD4E1; --border:rgba(14,22,38,0.10);
+    --brand:#1E6FD0; --brand-2:#2A7BDD;
+    --win:#0FA47B; --loss:#E23B3B; --pending:#CC8A00; --alive:#0FA47B;
+    --shadow:0 1px 2px rgba(20,30,50,.06),0 4px 14px rgba(20,30,50,.08);
+  }
+  /* Midnight — dark theme (primary) */
+  :root[data-theme="dark"] {
+    --plane:#0A0F1C; --surface:#0E1626; --surface-2:#16233B;
+    --ink:#E8ECF3; --ink-2:#C6D0E0; --muted:#8A97AD;
+    --grid:rgba(255,255,255,0.07); --line:rgba(255,255,255,0.14); --border:rgba(255,255,255,0.09);
+    --brand:#3BA0FF; --brand-2:#57ACFF;
+    --win:#28E0A8; --loss:#FF5D5D; --pending:#F5C518; --alive:#28E0A8;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.5);
+  }
+  * { box-sizing:border-box; }
+  html,body { margin:0; }
+  body {
+    font-family:'Oswald',system-ui,sans-serif;
+    background:var(--plane); color:var(--ink);
+    font-size:14px; line-height:1.45; -webkit-font-smoothing:antialiased;
+  }
+  .wrap { max-width:1180px; margin:0 auto; padding:20px 20px 80px; }
+
+  /* Header */
+  header.app {
+    display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+    padding:16px 0 18px; border-bottom:1px solid var(--border); margin-bottom:18px;
+  }
+  .logo {
+    width:44px; height:44px; border-radius:12px; flex:none;
+    background:linear-gradient(135deg,var(--brand-2),#153e7a);
+    display:grid; place-items:center; color:#fff; font-weight:800; font-size:20px;
+    box-shadow:var(--shadow);
+  }
+  .title h1 { margin:0; font-size:20px; font-weight:700; letter-spacing:-.01em; }
+  .title h1[contenteditable] { outline:none; border-radius:6px; padding:1px 4px; margin:-1px -4px; }
+  .title h1[contenteditable]:focus { background:var(--surface-2); box-shadow:0 0 0 2px var(--brand-2); }
+  .title .sub { color:var(--muted); font-size:12.5px; }
+  .title .stamp { color:var(--muted); font-size:11.5px; letter-spacing:.02em; margin-top:1px; }
+  .spacer { flex:1; }
+  .hbtns { display:flex; gap:8px; align-items:center; }
+
+  button, .btn {
+    font:inherit; cursor:pointer; border:1px solid var(--border);
+    background:var(--surface); color:var(--ink); padding:7px 12px; border-radius:9px;
+    display:inline-flex; align-items:center; gap:6px; transition:.12s; white-space:nowrap;
+  }
+  button:hover, .btn:hover { background:var(--surface-2); border-color:var(--line); }
+  button.primary { background:var(--brand); color:#fff; border-color:transparent; }
+  button.primary:hover { filter:brightness(1.06); }
+  button.ghost { background:transparent; }
+  button.sm { padding:4px 9px; font-size:12.5px; border-radius:7px; }
+  button.danger:hover { color:#fff; background:var(--loss); border-color:transparent; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+
+  /* Stat row */
+  .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px; }
+  .stat {
+    background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    padding:14px 16px; box-shadow:var(--shadow);
+  }
+  .stat .k { font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; font-weight:600; }
+  .stat .v { font-size:30px; font-weight:750; letter-spacing:-.02em; margin-top:2px; line-height:1.1; }
+  .stat .v small { font-size:15px; color:var(--muted); font-weight:600; }
+
+  /* Tabs */
+  nav.tabs { display:flex; gap:4px; margin-bottom:16px; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+  nav.tabs button {
+    border:none; background:transparent; border-radius:0; padding:9px 14px;
+    color:var(--ink-2); font-weight:600; border-bottom:2px solid transparent; margin-bottom:-1px;
+  }
+  nav.tabs button:hover { background:var(--surface-2); }
+  nav.tabs button.active { color:var(--brand); border-bottom-color:var(--brand); }
+
+  .panel { display:none; }
+  .panel.active { display:block; animation:fade .18s ease; }
+  @keyframes fade { from{opacity:0;transform:translateY(4px);} to{opacity:1;transform:none;} }
+
+  .card {
+    background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    box-shadow:var(--shadow); padding:16px 18px; margin-bottom:16px;
+  }
+  .card h2 { margin:0 0 4px; font-size:15px; font-weight:700; }
+  .card .desc { color:var(--muted); font-size:12.5px; margin:0 0 12px; }
+
+  /* Tables */
+  table { width:100%; border-collapse:collapse; }
+  th, td { text-align:left; padding:9px 10px; border-bottom:1px solid var(--grid); vertical-align:middle; }
+  th { font-size:11.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); font-weight:600; }
+  tbody tr:hover { background:var(--surface-2); }
+  td.num, th.num { text-align:right; font-variant-numeric:tabular-nums; }
+
+  .badge { display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:650;
+           padding:3px 9px; border-radius:999px; white-space:nowrap; }
+  .badge.alive { color:var(--alive); background:color-mix(in srgb,var(--alive) 13%,transparent); }
+  .badge.out { color:var(--loss); background:color-mix(in srgb,var(--loss) 13%,transparent); }
+  .dot { width:8px; height:8px; border-radius:50%; display:inline-block; }
+
+  .teamchip { display:inline-flex; align-items:center; gap:6px; font-weight:600; font-size:12.5px;
+              padding:2px 8px 2px 6px; border-radius:7px; border:1px solid var(--border); background:var(--surface); }
+  .teamchip .sw { width:9px; height:9px; border-radius:3px; flex:none; }
+  .usedlist { display:flex; flex-wrap:wrap; gap:4px; }
+  .usedlist .teamchip { font-size:11px; padding:1px 6px 1px 5px; }
+
+  /* Standings — grouped list */
+  .stsec { text-transform:uppercase; letter-spacing:.14em; font-size:11px; color:var(--muted); margin:2px 0 2px;
+           display:flex; align-items:baseline; gap:10px; }
+  .stsec .collabel { margin-left:auto; letter-spacing:.08em; text-align:right; }
+  .strow { display:flex; align-items:center; padding:12px 2px; border-bottom:1px solid var(--grid); }
+  .strow:last-child { border-bottom:none; }
+  .stname { font-weight:500; font-size:19px; letter-spacing:.01em; flex:1; }
+  .strow.dead .stname { color:var(--muted); font-weight:400; }
+  .stpick { display:inline-flex; align-items:center; gap:9px; font-size:16px; color:var(--ink-2); }
+  .pkdot { width:11px; height:11px; border-radius:3px; flex:none; box-shadow:0 0 0 1px var(--line); }
+  .stout { font-size:12.5px; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); }
+
+  .result-w { color:var(--win); font-weight:700; }
+  .result-l { color:var(--loss); font-weight:700; }
+  .result-p { color:var(--pending); font-weight:700; }
+
+  select, input[type=text] {
+    font:inherit; padding:6px 9px; border-radius:8px; border:1px solid var(--border);
+    background:var(--surface); color:var(--ink); max-width:100%;
+  }
+  select:focus, input:focus { outline:none; border-color:var(--brand-2); box-shadow:0 0 0 2px color-mix(in srgb,var(--brand-2) 30%,transparent); }
+  select.pick { min-width:150px; }
+  textarea { font:inherit; width:100%; min-height:150px; padding:10px; border-radius:10px;
+             border:1px solid var(--border); background:var(--surface); color:var(--ink); resize:vertical; }
+  textarea:focus { outline:none; border-color:var(--brand-2); box-shadow:0 0 0 2px color-mix(in srgb,var(--brand-2) 30%,transparent); }
+
+  .sched-day { margin:14px 0 6px; font-size:12px; font-weight:700; color:var(--ink-2); text-transform:uppercase; letter-spacing:.04em; }
+  .sched-day:first-child { margin-top:0; }
+  .games { display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:10px; }
+  .game { display:flex; align-items:center; gap:8px; border:1px solid var(--border); border-radius:11px; padding:10px 12px; background:var(--surface); }
+  .game .mt { display:flex; flex-direction:column; gap:4px; flex:1; }
+  .game .teamrow { display:flex; align-items:center; gap:7px; font-weight:650; }
+  .game .teamrow .sw { width:11px; height:11px; border-radius:3px; flex:none; }
+  .game .at { color:var(--muted); font-size:11px; font-weight:600; padding-left:2px; }
+  .game .rec { color:var(--ink-2); font-size:11.5px; font-weight:600; font-variant-numeric:tabular-nums; margin-left:auto; padding-left:6px; }
+
+  .weekbar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:6px; }
+  .weekbar .lg { font-size:16px; font-weight:700; min-width:70px; text-align:center; }
+  .hint { color:var(--muted); font-size:12px; }
+
+  /* Pick grid */
+  .gridscroll { overflow:auto; border:1px solid var(--border); border-radius:12px; }
+  table.matrix { border-collapse:separate; border-spacing:0; font-size:12px; }
+  table.matrix th, table.matrix td { border-bottom:1px solid var(--grid); border-right:1px solid var(--grid); padding:6px 7px; white-space:nowrap; }
+  table.matrix thead th { position:sticky; top:0; background:var(--surface-2); z-index:2; }
+  table.matrix td.pname, table.matrix th.pname { position:sticky; left:0; background:var(--surface); z-index:1; font-weight:600; text-align:left; }
+  table.matrix thead th.pname { z-index:3; }
+  table.matrix tr.dead td { opacity:.5; }
+  .cell { display:inline-block; min-width:34px; text-align:center; font-weight:700; border-radius:6px; padding:2px 6px; }
+  .cell.w { color:#A7E8D2; background:#0F5C43; }
+  .cell.l { color:#fff; background:var(--loss); }
+  .cell.p { color:var(--ink); background:color-mix(in srgb,var(--pending) 30%,transparent); }
+  .cell.none { color:var(--muted); }
+
+  .rescell { display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid var(--grid); }
+  .rescell:last-child { border-bottom:none; }
+  .rescell .who { color:var(--muted); font-size:12px; }
+  .seg { display:inline-flex; border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+  .seg button { border:none; border-radius:0; padding:5px 12px; font-size:12.5px; font-weight:650; background:var(--surface); color:var(--ink-2); }
+  .seg button + button { border-left:1px solid var(--border); }
+  .seg button.on.w { background:var(--win); color:#fff; }
+  .seg button.on.l { background:var(--loss); color:#fff; }
+  .seg button.on.p { background:var(--surface-2); color:var(--ink); }
+
+  .empty { text-align:center; color:var(--muted); padding:26px; }
+
+  /* week pills */
+  .weekpills-wrap { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  .wp-label { font-weight:700; }
+  .weekpills { display:flex; flex-wrap:wrap; gap:6px; }
+  .wpill { border:1px solid var(--border); background:var(--surface); color:var(--ink-2);
+           border-radius:999px; min-width:34px; height:30px; padding:0 10px; font:inherit; font-weight:600;
+           font-size:13px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; transition:.12s; }
+  .wpill:hover { background:var(--surface-2); border-color:var(--line); }
+  .wpill.active { background:var(--brand); color:#fff; border-color:transparent; }
+
+  /* insights bars */
+  .poprow { display:grid; grid-template-columns:60px 1fr auto; align-items:center; gap:12px; padding:5px 0; }
+  .poptrack { background:var(--surface-2); border-radius:7px; height:22px; overflow:hidden; }
+  .popbar { height:100%; border-radius:7px; background:linear-gradient(90deg,var(--brand-2),var(--brand)); min-width:3px; transition:width .2s; }
+  .popbar.burn { background:linear-gradient(90deg,#eb6834,#c94f22); }
+  .popbar.avail { background:linear-gradient(90deg,#1baf7a,#199e70); }
+  .popbar.kill { background:linear-gradient(90deg,#8a2b2b,var(--loss)); }
+  .victims { font-size:12px; color:var(--ink-2); margin:-2px 0 8px 72px; }
+  .byebar { margin-top:16px; padding-top:14px; border-top:1px solid var(--grid); display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+  .byelabel { font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; margin-right:4px; }
+  .popbar.win { background:linear-gradient(90deg,#2bb47a,var(--win)); }
+  .popbar.loss { background:linear-gradient(90deg,#e2685f,var(--loss)); }
+  .popn { font-weight:700; font-variant-numeric:tabular-nums; white-space:nowrap; font-size:13px; }
+  .burncols { columns:2; column-gap:26px; }
+  @media (max-width:640px){ .burncols { columns:1; } }
+  .burncols .poprow { break-inside:avoid; grid-template-columns:56px 1fr auto; }
+  .heatcell { display:inline-block; min-width:24px; padding:2px 6px; border-radius:6px; font-weight:700; font-size:12px; }
+  /* firepower */
+  .frow { padding:11px 0; border-bottom:1px solid var(--grid); }
+  .frow:last-child { border-bottom:none; }
+  .fhead { display:grid; grid-template-columns:92px 1fr; align-items:center; gap:12px; margin-bottom:8px; }
+  .fname { font-weight:700; }
+  .fptrack { background:var(--surface-2); border-radius:7px; height:20px; overflow:hidden; }
+  .fpbar { display:block; height:100%; border-radius:7px; background:linear-gradient(90deg,var(--brand-2),var(--brand)); }
+  .fpval { font-weight:700; font-variant-numeric:tabular-nums; }
+  .fchips { display:flex; flex-wrap:wrap; gap:5px; }
+
+  /* attrition dot grid */
+  .alegend { display:flex; gap:16px; align-items:center; margin-bottom:14px; font-size:12px; color:var(--ink-2); flex-wrap:wrap; }
+  .alegend span { display:inline-flex; align-items:center; gap:6px; }
+  .alegend .ad { width:12px; height:12px; font-size:0; }
+  .attrition { display:flex; flex-direction:column; gap:9px; }
+  .arow { display:grid; grid-template-columns:38px 1fr auto; align-items:center; gap:12px; }
+  .arow .awk { color:var(--muted); font-size:12px; font-weight:700; text-align:right; font-variant-numeric:tabular-nums; }
+  .arow .adots { display:flex; gap:7px; flex-wrap:wrap; }
+  .arow .aleft { color:var(--muted); font-size:12px; font-weight:600; white-space:nowrap; font-variant-numeric:tabular-nums; }
+  .ad { width:24px; height:24px; border-radius:50%; flex:none;
+         display:inline-flex; align-items:center; justify-content:center;
+         font-size:9.5px; font-weight:700; letter-spacing:0; line-height:1; }
+  .ad.alive { background:var(--brand); color:#fff; }
+  .ad.just { background:var(--loss); color:#fff; box-shadow:0 0 0 3px color-mix(in srgb,var(--loss) 22%,transparent); }
+  .ad.out { background:var(--grid); color:var(--muted); }
+
+  /* chart */
+  .chartwrap { position:relative; }
+  svg .axis { stroke:var(--line); stroke-width:1; }
+  svg .grid { stroke:var(--grid); stroke-width:1; }
+  svg text { fill:var(--muted); font-size:11px; }
+  .tip { position:absolute; pointer-events:none; background:var(--ink); color:var(--plane);
+         padding:5px 9px; border-radius:7px; font-size:12px; font-weight:600; opacity:0; transform:translate(-50%,-130%); transition:opacity .1s; white-space:nowrap; }
+  :root[data-theme="dark"] .tip { background:#fff; color:#000; }
+
+  .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .addrow { display:flex; gap:8px; margin-top:12px; }
+  .muted { color:var(--muted); }
+  .warnpill { font-size:11.5px; color:var(--loss); font-weight:600; }
+
+  /* player detail panel */
+  .pmask { position:fixed; inset:0; background:rgba(3,7,15,.62); z-index:50;
+           display:flex; align-items:center; justify-content:center; padding:16px; }
+  .pmask[hidden] { display:none; }
+  .pcard { background:var(--surface); border:1px solid var(--border); border-radius:14px;
+           box-shadow:var(--shadow); width:100%; max-width:430px; max-height:86vh; overflow:auto;
+           padding:16px 18px 14px; }
+  .phead { display:flex; align-items:center; gap:12px; }
+  .pav { width:44px; height:44px; border-radius:50%; flex:none; display:grid; place-items:center;
+         font-size:14px; font-weight:700; color:#fff; background:var(--brand); }
+  .pav.out { background:var(--loss); }
+  .pname { font-size:19px; font-weight:600; line-height:1.2; }
+  .psub { font-size:12.5px; color:var(--muted); }
+  .pstrip { display:grid; grid-template-columns:repeat(auto-fill,minmax(58px,1fr)); gap:6px; }
+  .pchip { border-radius:8px; padding:5px 3px; text-align:center; background:var(--surface-2); }
+  .pchip .w { font-size:10.5px; color:var(--muted); line-height:1.2; }
+  .pchip .t { font-size:13px; font-weight:700; line-height:1.25; }
+  .pchip.w-on { background:#0F5C43; } .pchip.w-on .w, .pchip.w-on .t { color:#A7E8D2; }
+  .pchip.l-on { background:var(--loss); } .pchip.l-on .w, .pchip.l-on .t { color:#fff; }
+  .pchip.p-on { background:color-mix(in srgb,var(--pending) 30%,transparent); }
+  .pchip.none .t { color:var(--muted); font-weight:500; }
+  .pnote { margin-top:12px; padding:10px 12px; border-radius:9px; display:flex; gap:10px; align-items:center;
+           background:color-mix(in srgb,var(--loss) 14%,transparent); }
+  .pnote .sw { width:10px; height:10px; border-radius:3px; flex:none; }
+  .plabel { font-size:12.5px; color:var(--muted); margin:14px 0 7px; }
+  .pfoot { border-top:1px solid var(--grid); margin-top:14px; padding-top:12px; display:flex; justify-content:flex-end; }
+  .clickname { cursor:pointer; }
+  .clickname:hover { color:var(--brand); }
+  @media (max-width:720px){ .stats{grid-template-columns:repeat(2,1fr);} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="app">
+    <div class="logo">🏈</div>
+    <div class="title">
+      <h1 id="poolName">Synergy Survivor</h1>
+      <div class="sub" id="poolSub">2026 NFL Season · Company Survivor Pool</div>
+      <div class="stamp" id="poolStamp"></div>
+    </div>
+    <div class="spacer"></div>
+    <div class="hbtns">
+      <button class="ghost sm" id="themeBtn" title="Toggle light/dark">☀ Light</button>
+    </div>
+  </header>
+
+  <div class="stats" id="statRow"></div>
+
+  <nav class="tabs" id="tabs">
+    <button data-tab="standings" class="active">Standings</button>
+    <button data-tab="grid">Pick Grid</button>
+    <button data-tab="schedule">Schedule</button>
+    <button data-tab="insights">Insights</button>
+  </nav>
+
+  <!-- STANDINGS -->
+  <section class="panel active" id="tab-standings">
+    <div class="card">
+      <h2>Survivors remaining</h2>
+      <p class="desc">Each dot is a player. Every week, a dot turns red when that person is eliminated, then fades to gray — so you can watch the field thin out. Hover a dot for the name.</p>
+      <div class="chartwrap" id="chartWrap"></div>
+    </div>
+    <div class="card">
+      <h2>Standings</h2>
+      <p class="desc">Who's still in and who's out, with each survivor's pick for the week. One team a week, it has to win, no team twice, one loss and you're out.</p>
+      <div id="standingsTable"></div>
+    </div>
+  </section>
+
+  <!-- PICK GRID -->
+  <section class="panel" id="tab-grid">
+    <div class="card">
+      <h2>Season pick grid</h2>
+      <p class="desc">Every pick, every week. <span class="result-w">Green</span> = won, <span class="result-l">red</span> = lost (eliminated), <span class="result-p">yellow</span> = played, result pending.</p>
+      <div class="gridscroll" id="gridScroll"></div>
+    </div>
+  </section>
+
+  <!-- SCHEDULE -->
+  <section class="panel" id="tab-schedule">
+    <div class="card">
+      <div class="weekpills-wrap">
+        <span class="wp-label">Week</span>
+        <div class="weekpills" id="schPills"></div>
+        <span class="hint" id="schCount"></span>
+      </div>
+    </div>
+    <div class="card">
+      <h2>NFL Schedule — Week <span id="schWeekNum">1</span></h2>
+      <div id="scheduleView"></div>
+    </div>
+  </section>
+
+  <!-- INSIGHTS -->
+  <section class="panel" id="tab-insights">
+    <div class="card">
+      <div class="weekpills-wrap">
+        <span class="wp-label">Week</span>
+        <div class="weekpills" id="insPills"></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>This week's pick popularity</h2>
+      <p class="desc">How many players took each team in Week <span id="insWeekNum">1</span>. The consensus ("chalk") pick sits on top; contrarians below.</p>
+      <div id="pickPop"></div>
+    </div>
+    <div class="card">
+      <h2>💀 Killer teams graveyard</h2>
+      <p class="desc">Teams that have ended a player's run — a team that lost while someone had it picked. Victims (and the week they fell) are listed under each.</p>
+      <div id="graveyard"></div>
+    </div>
+    <div class="card">
+      <h2>Team availability</h2>
+      <p class="desc">Of the players still alive, how many still have each team available to play (teams are one-time use). Ordered by power rating, strongest team first.</p>
+      <div id="burnList"></div>
+    </div>
+    <div class="card">
+      <h2>Remaining firepower</h2>
+      <p class="desc">How much team strength each surviving player still has banked (nfelo power of their unused teams). Redder bar = more firepower left, cooling to blue for less; their top 5 remaining teams are shown. <span class="muted">Refresh ratings in the admin box below.</span></p>
+      <div id="firepower"></div>
+    </div>
+    <div class="card">
+      <h2>Season pick heatmap</h2>
+      <p class="desc">How heavily each team has been picked, by week. Hotter (red) = more players piled onto that team; cool blue = a light week.</p>
+      <div class="gridscroll" id="heatWrap"></div>
+    </div>
+  </section>
+
+
+</div>
+
+<div class="tip" id="tip"></div>
+<div class="pmask" id="pMask" hidden><div class="pcard" id="pBody"></div></div>
+
+<script>
+/* ---------- NFL teams ---------- */
+const TEAMS = [
+  ["ARI","Arizona Cardinals","#97233F"],["ATL","Atlanta Falcons","#A71930"],
+  ["BAL","Baltimore Ravens","#241773"],["BUF","Buffalo Bills","#00338D"],
+  ["CAR","Carolina Panthers","#0085CA"],["CHI","Chicago Bears","#0B162A"],
+  ["CIN","Cincinnati Bengals","#FB4F14"],["CLE","Cleveland Browns","#552A12"],
+  ["DAL","Dallas Cowboys","#041E42"],["DEN","Denver Broncos","#FB4F14"],
+  ["DET","Detroit Lions","#0076B6"],["GB","Green Bay Packers","#203731"],
+  ["HOU","Houston Texans","#03202F"],["IND","Indianapolis Colts","#002C5F"],
+  ["JAX","Jacksonville Jaguars","#006778"],["KC","Kansas City Chiefs","#E31837"],
+  ["LV","Las Vegas Raiders","#101010"],["LAC","Los Angeles Chargers","#0080C6"],
+  ["LAR","Los Angeles Rams","#003594"],["MIA","Miami Dolphins","#008E97"],
+  ["MIN","Minnesota Vikings","#4F2683"],["NE","New England Patriots","#002244"],
+  ["NO","New Orleans Saints","#9F8958"],["NYG","New York Giants","#0B2265"],
+  ["NYJ","New York Jets","#125740"],["PHI","Philadelphia Eagles","#004C54"],
+  ["PIT","Pittsburgh Steelers","#B9A24A"],["SF","San Francisco 49ers","#AA0000"],
+  ["SEA","Seattle Seahawks","#69BE28"],["TB","Tampa Bay Buccaneers","#D50A0A"],
+  ["TEN","Tennessee Titans","#4B92DB"],["WAS","Washington Commanders","#5A1414"]
+].map(t=>({abbr:t[0],name:t[1],color:t[2]}));
+const TEAM = Object.fromEntries(TEAMS.map(t=>[t.abbr,t]));
+const WEEKS = 18;
+
+/* Power ratings (nfelo, nfeloapp.com/nfl-power-ratings). Update via the Insights
+   admin box or replace these values. Snapshot pulled to seed the file. */
+const DEFAULT_POWER={SEA:1751,LAR:1682,BUF:1658,NE:1648,JAX:1629,SF:1626,DET:1622,HOU:1621,PHI:1594,BAL:1574,CHI:1573,DEN:1554,PIT:1512,CIN:1507,DAL:1505,GB:1501,ATL:1496,MIN:1480,LAC:1468,TB:1455,KC:1447,NYG:1421,NO:1412,IND:1409,CAR:1409,CLE:1385,MIA:1351,ARI:1347,TEN:1339,WAS:1334,LV:1292,NYJ:1209};
+const NICK2ABBR={cardinals:'ARI',falcons:'ATL',ravens:'BAL',bills:'BUF',panthers:'CAR',bears:'CHI',bengals:'CIN',browns:'CLE',cowboys:'DAL',broncos:'DEN',lions:'DET',packers:'GB',texans:'HOU',colts:'IND',jaguars:'JAX',chiefs:'KC',raiders:'LV',chargers:'LAC',rams:'LAR',dolphins:'MIA',vikings:'MIN',patriots:'NE',saints:'NO',giants:'NYG',jets:'NYJ',eagles:'PHI',steelers:'PIT','49ers':'SF',seahawks:'SEA',buccaneers:'TB',titans:'TEN',commanders:'WAS'};
+
+
+/* ---------- Starting state ---------- */
+function sampleState(){
+  // Starting roster — 2026 season. Add players on the Players tab as they confirm.
+  const players=[{"id":"p1","name":"Lauren C."},{"id":"p2","name":"Kaitlyn B."},{"id":"p3","name":"Jody S."},{"id":"p4","name":"Nick P."},{"id":"p5","name":"Sheryl J."},{"id":"p6","name":"Katie M."},{"id":"p7","name":"Tricia L."},{"id":"p8","name":"Mikenna M."},{"id":"p9","name":"Shane L."},{"id":"p10","name":"Cristina J."},{"id":"p11","name":"Alvin C."},{"id":"p12","name":"Zach W."},{"id":"p13","name":"Sharon T."},{"id":"p14","name":"Ryan T."},{"id":"p15","name":"Jeremy P."},{"id":"p16","name":"Jaime D."},{"id":"p17","name":"Ashley F."},{"id":"p18","name":"Yvonne J."},{"id":"p19","name":"Laura R."}];
+  const picks={"p1":{"1":"LAC"},"p2":{"1":"LAC"},"p3":{"1":"DET"},"p4":{"1":"JAX"},"p5":{"1":"DET"},"p6":{"1":"LAC"},"p7":{"1":"LAC"},"p8":{"1":"LAC"},"p9":{"1":"JAX"},"p10":{"1":"LAC"},"p11":{"1":"CHI"},"p12":{"1":"LAC"},"p13":{"1":"LV"},"p14":{"1":"BAL"},"p15":{"1":"SEA"},"p16":{"1":"DET"},"p17":{"1":"BUF"},"p18":{"1":"LAC"},"p19":{"1":"LAC"}};
+  const results={"1":{"SEA":"W","JAX":"W","BAL":"W","CHI":"W","BUF":"W","DET":"W"}};
+  // Full verified 2026 slate (18 weeks / 272 games) preloaded; edit via the Schedule tab if the NFL flexes a game.
+  const schedule = {"1":[{"away":"NE","home":"SEA","date":"2026-09-09","win":"SEA"},{"away":"SF","home":"LAR","date":"2026-09-10","win":"SF"},{"away":"ATL","home":"PIT","date":"2026-09-13","win":"PIT"},{"away":"BAL","home":"IND","date":"2026-09-13","win":"BAL"},{"away":"BUF","home":"HOU","date":"2026-09-13","win":"BUF"},{"away":"CHI","home":"CAR","date":"2026-09-13","win":"CHI"},{"away":"CLE","home":"JAX","date":"2026-09-13","win":"JAX"},{"away":"NO","home":"DET","date":"2026-09-13","win":"DET"},{"away":"NYJ","home":"TEN","date":"2026-09-13","win":"NYJ"},{"away":"TB","home":"CIN","date":"2026-09-13","win":"CIN"},{"away":"ARI","home":"LAC","date":"2026-09-13"},{"away":"GB","home":"MIN","date":"2026-09-13"},{"away":"MIA","home":"LV","date":"2026-09-13"},{"away":"WAS","home":"PHI","date":"2026-09-13"},{"away":"DAL","home":"NYG","date":"2026-09-13"},{"away":"DEN","home":"KC","date":"2026-09-14"}],"2":[{"away":"DET","home":"BUF","date":"2026-09-17"},{"away":"CAR","home":"ATL","date":"2026-09-20"},{"away":"CIN","home":"HOU","date":"2026-09-20"},{"away":"CLE","home":"TB","date":"2026-09-20"},{"away":"GB","home":"NYJ","date":"2026-09-20"},{"away":"MIN","home":"CHI","date":"2026-09-20"},{"away":"NO","home":"BAL","date":"2026-09-20"},{"away":"PHI","home":"TEN","date":"2026-09-20"},{"away":"PIT","home":"NE","date":"2026-09-20"},{"away":"JAX","home":"DEN","date":"2026-09-20"},{"away":"LV","home":"LAC","date":"2026-09-20"},{"away":"MIA","home":"SF","date":"2026-09-20"},{"away":"SEA","home":"ARI","date":"2026-09-20"},{"away":"WAS","home":"DAL","date":"2026-09-20"},{"away":"IND","home":"KC","date":"2026-09-20"},{"away":"NYG","home":"LAR","date":"2026-09-21"}],"3":[{"away":"ATL","home":"GB","date":"2026-09-24"},{"away":"CAR","home":"CLE","date":"2026-09-27"},{"away":"CIN","home":"PIT","date":"2026-09-27"},{"away":"HOU","home":"IND","date":"2026-09-27"},{"away":"KC","home":"MIA","date":"2026-09-27"},{"away":"LAC","home":"BUF","date":"2026-09-27"},{"away":"NE","home":"JAX","date":"2026-09-27"},{"away":"NYJ","home":"DET","date":"2026-09-27"},{"away":"SEA","home":"WAS","date":"2026-09-27"},{"away":"TEN","home":"NYG","date":"2026-09-27"},{"away":"ARI","home":"SF","date":"2026-09-27"},{"away":"MIN","home":"TB","date":"2026-09-27"},{"away":"BAL","home":"DAL","date":"2026-09-27"},{"away":"LV","home":"NO","date":"2026-09-27"},{"away":"LAR","home":"DEN","date":"2026-09-27"},{"away":"PHI","home":"CHI","date":"2026-09-28"}],"4":[{"away":"PIT","home":"CLE","date":"2026-10-01"},{"away":"IND","home":"WAS","date":"2026-10-04"},{"away":"ARI","home":"NYG","date":"2026-10-04"},{"away":"DAL","home":"HOU","date":"2026-10-04"},{"away":"GB","home":"TB","date":"2026-10-04"},{"away":"JAX","home":"CIN","date":"2026-10-04"},{"away":"LAR","home":"PHI","date":"2026-10-04"},{"away":"NE","home":"BUF","date":"2026-10-04"},{"away":"NYJ","home":"CHI","date":"2026-10-04"},{"away":"TEN","home":"BAL","date":"2026-10-04"},{"away":"MIA","home":"MIN","date":"2026-10-04"},{"away":"DEN","home":"SF","date":"2026-10-04"},{"away":"KC","home":"LV","date":"2026-10-04"},{"away":"LAC","home":"SEA","date":"2026-10-04"},{"away":"DET","home":"CAR","date":"2026-10-04"},{"away":"ATL","home":"NO","date":"2026-10-05"}],"5":[{"away":"TB","home":"DAL","date":"2026-10-08"},{"away":"PHI","home":"JAX","date":"2026-10-11"},{"away":"CIN","home":"MIA","date":"2026-10-11"},{"away":"CLE","home":"NYJ","date":"2026-10-11"},{"away":"HOU","home":"TEN","date":"2026-10-11"},{"away":"IND","home":"PIT","date":"2026-10-11"},{"away":"LV","home":"NE","date":"2026-10-11"},{"away":"MIN","home":"NO","date":"2026-10-11"},{"away":"NYG","home":"WAS","date":"2026-10-11"},{"away":"DEN","home":"LAC","date":"2026-10-11"},{"away":"CHI","home":"GB","date":"2026-10-11"},{"away":"DET","home":"ARI","date":"2026-10-11"},{"away":"SF","home":"SEA","date":"2026-10-11"},{"away":"BAL","home":"ATL","date":"2026-10-11"},{"away":"BUF","home":"LAR","date":"2026-10-12"}],"6":[{"away":"SEA","home":"DEN","date":"2026-10-15"},{"away":"HOU","home":"JAX","date":"2026-10-18"},{"away":"BAL","home":"CLE","date":"2026-10-18"},{"away":"CAR","home":"PHI","date":"2026-10-18"},{"away":"CHI","home":"ATL","date":"2026-10-18"},{"away":"NO","home":"NYG","date":"2026-10-18"},{"away":"NYJ","home":"NE","date":"2026-10-18"},{"away":"PIT","home":"TB","date":"2026-10-18"},{"away":"TEN","home":"IND","date":"2026-10-18"},{"away":"ARI","home":"LAR","date":"2026-10-18"},{"away":"BUF","home":"LV","date":"2026-10-18"},{"away":"LAC","home":"KC","date":"2026-10-18"},{"away":"DAL","home":"GB","date":"2026-10-18"},{"away":"WAS","home":"SF","date":"2026-10-19"}],"7":[{"away":"NE","home":"CHI","date":"2026-10-22"},{"away":"PIT","home":"NO","date":"2026-10-25"},{"away":"CIN","home":"BAL","date":"2026-10-25"},{"away":"CLE","home":"TEN","date":"2026-10-25"},{"away":"IND","home":"MIN","date":"2026-10-25"},{"away":"MIA","home":"NYJ","date":"2026-10-25"},{"away":"NYG","home":"HOU","date":"2026-10-25"},{"away":"SF","home":"ATL","date":"2026-10-25"},{"away":"TB","home":"CAR","date":"2026-10-25"},{"away":"DEN","home":"ARI","date":"2026-10-25"},{"away":"GB","home":"DET","date":"2026-10-25"},{"away":"LAR","home":"LV","date":"2026-10-25"},{"away":"KC","home":"SEA","date":"2026-10-25"},{"away":"DAL","home":"PHI","date":"2026-10-26"}],"8":[{"away":"CAR","home":"GB","date":"2026-10-29"},{"away":"ARI","home":"DAL","date":"2026-11-01"},{"away":"ATL","home":"TB","date":"2026-11-01"},{"away":"BAL","home":"BUF","date":"2026-11-01"},{"away":"CLE","home":"PIT","date":"2026-11-01"},{"away":"IND","home":"JAX","date":"2026-11-01"},{"away":"LV","home":"NYJ","date":"2026-11-01"},{"away":"MIN","home":"DET","date":"2026-11-01"},{"away":"TEN","home":"CIN","date":"2026-11-01"},{"away":"LAC","home":"LAR","date":"2026-11-01"},{"away":"KC","home":"DEN","date":"2026-11-01"},{"away":"NE","home":"MIA","date":"2026-11-01"},{"away":"PHI","home":"WAS","date":"2026-11-01"},{"away":"CHI","home":"SEA","date":"2026-11-02"}],"9":[{"away":"JAX","home":"BAL","date":"2026-11-05"},{"away":"CIN","home":"ATL","date":"2026-11-08"},{"away":"CLE","home":"NO","date":"2026-11-08"},{"away":"DAL","home":"IND","date":"2026-11-08"},{"away":"DEN","home":"CAR","date":"2026-11-08"},{"away":"DET","home":"MIA","date":"2026-11-08"},{"away":"LAR","home":"WAS","date":"2026-11-08"},{"away":"NYG","home":"PHI","date":"2026-11-08"},{"away":"NYJ","home":"KC","date":"2026-11-08"},{"away":"HOU","home":"LAC","date":"2026-11-08"},{"away":"LV","home":"SF","date":"2026-11-08"},{"away":"ARI","home":"SEA","date":"2026-11-08"},{"away":"GB","home":"NE","date":"2026-11-08"},{"away":"TB","home":"CHI","date":"2026-11-08"},{"away":"BUF","home":"MIN","date":"2026-11-09"}],"10":[{"away":"WAS","home":"NYG","date":"2026-11-12"},{"away":"NE","home":"DET","date":"2026-11-15"},{"away":"BUF","home":"NYJ","date":"2026-11-15"},{"away":"CAR","home":"NO","date":"2026-11-15"},{"away":"HOU","home":"CLE","date":"2026-11-15"},{"away":"JAX","home":"TEN","date":"2026-11-15"},{"away":"KC","home":"ATL","date":"2026-11-15"},{"away":"MIA","home":"IND","date":"2026-11-15"},{"away":"MIN","home":"GB","date":"2026-11-15"},{"away":"SEA","home":"LV","date":"2026-11-15"},{"away":"LAR","home":"ARI","date":"2026-11-15"},{"away":"SF","home":"DAL","date":"2026-11-15"},{"away":"PIT","home":"CIN","date":"2026-11-15"},{"away":"LAC","home":"BAL","date":"2026-11-16"}],"11":[{"away":"IND","home":"HOU","date":"2026-11-19"},{"away":"ARI","home":"KC","date":"2026-11-22"},{"away":"BAL","home":"CAR","date":"2026-11-22"},{"away":"JAX","home":"NYG","date":"2026-11-22"},{"away":"MIA","home":"BUF","date":"2026-11-22"},{"away":"NO","home":"CHI","date":"2026-11-22"},{"away":"TB","home":"DET","date":"2026-11-22"},{"away":"TEN","home":"DAL","date":"2026-11-22"},{"away":"NYJ","home":"LAC","date":"2026-11-22"},{"away":"LV","home":"DEN","date":"2026-11-22"},{"away":"PIT","home":"PHI","date":"2026-11-22"},{"away":"MIN","home":"SF","date":"2026-11-22"},{"away":"CIN","home":"WAS","date":"2026-11-23"}],"12":[{"away":"GB","home":"LAR","date":"2026-11-25"},{"away":"CHI","home":"DET","date":"2026-11-26"},{"away":"PHI","home":"DAL","date":"2026-11-26"},{"away":"KC","home":"BUF","date":"2026-11-26"},{"away":"DEN","home":"PIT","date":"2026-11-27"},{"away":"ATL","home":"MIN","date":"2026-11-29"},{"away":"BAL","home":"HOU","date":"2026-11-29"},{"away":"LV","home":"CLE","date":"2026-11-29"},{"away":"NO","home":"CIN","date":"2026-11-29"},{"away":"NYG","home":"IND","date":"2026-11-29"},{"away":"NYJ","home":"MIA","date":"2026-11-29"},{"away":"TEN","home":"JAX","date":"2026-11-29"},{"away":"SEA","home":"SF","date":"2026-11-29"},{"away":"WAS","home":"ARI","date":"2026-11-29"},{"away":"NE","home":"LAC","date":"2026-11-29"},{"away":"CAR","home":"TB","date":"2026-11-30"}],"13":[{"away":"KC","home":"LAR","date":"2026-12-03"},{"away":"CIN","home":"CLE","date":"2026-12-06"},{"away":"DET","home":"ATL","date":"2026-12-06"},{"away":"GB","home":"NO","date":"2026-12-06"},{"away":"JAX","home":"CHI","date":"2026-12-06"},{"away":"LAC","home":"TB","date":"2026-12-06"},{"away":"SF","home":"NYG","date":"2026-12-06"},{"away":"WAS","home":"TEN","date":"2026-12-06"},{"away":"MIA","home":"DEN","date":"2026-12-06"},{"away":"PHI","home":"ARI","date":"2026-12-06"},{"away":"BUF","home":"NE","date":"2026-12-06"},{"away":"CAR","home":"MIN","date":"2026-12-06"},{"away":"HOU","home":"PIT","date":"2026-12-06"},{"away":"DAL","home":"SEA","date":"2026-12-07"}],"14":[{"away":"MIN","home":"NE","date":"2026-12-10"},{"away":"ATL","home":"CLE","date":"2026-12-13"},{"away":"CHI","home":"MIA","date":"2026-12-13"},{"away":"DEN","home":"NYJ","date":"2026-12-13"},{"away":"HOU","home":"WAS","date":"2026-12-13"},{"away":"IND","home":"PHI","date":"2026-12-13"},{"away":"NO","home":"CAR","date":"2026-12-13"},{"away":"TB","home":"BAL","date":"2026-12-13"},{"away":"TEN","home":"DET","date":"2026-12-13"},{"away":"LAC","home":"LV","date":"2026-12-13"},{"away":"KC","home":"CIN","date":"2026-12-13"},{"away":"LAR","home":"SF","date":"2026-12-13"},{"away":"NYG","home":"SEA","date":"2026-12-13"},{"away":"BUF","home":"GB","date":"2026-12-13"},{"away":"PIT","home":"JAX","date":"2026-12-14"}],"15":[{"away":"SF","home":"LAC","date":"2026-12-17"},{"away":"SEA","home":"PHI","date":"2026-12-19"},{"away":"CHI","home":"BUF","date":"2026-12-19"},{"away":"ATL","home":"WAS","date":"2026-12-20"},{"away":"BAL","home":"PIT","date":"2026-12-20"},{"away":"CIN","home":"CAR","date":"2026-12-20"},{"away":"CLE","home":"NYG","date":"2026-12-20"},{"away":"IND","home":"TEN","date":"2026-12-20"},{"away":"JAX","home":"HOU","date":"2026-12-20"},{"away":"MIA","home":"GB","date":"2026-12-20"},{"away":"NO","home":"TB","date":"2026-12-20"},{"away":"NYJ","home":"ARI","date":"2026-12-20"},{"away":"DAL","home":"LAR","date":"2026-12-20"},{"away":"DEN","home":"LV","date":"2026-12-20"},{"away":"DET","home":"MIN","date":"2026-12-20"},{"away":"NE","home":"KC","date":"2026-12-21"}],"16":[{"away":"HOU","home":"PHI","date":"2026-12-24"},{"away":"GB","home":"CHI","date":"2026-12-25"},{"away":"BUF","home":"DEN","date":"2026-12-25"},{"away":"LAR","home":"SEA","date":"2026-12-25"},{"away":"ARI","home":"NO","date":"2026-12-27"},{"away":"CLE","home":"BAL","date":"2026-12-27"},{"away":"LAC","home":"MIA","date":"2026-12-27"},{"away":"NE","home":"NYJ","date":"2026-12-27"},{"away":"TEN","home":"LV","date":"2026-12-27"},{"away":"CAR","home":"PIT","date":"2026-12-27"},{"away":"CIN","home":"IND","date":"2026-12-27"},{"away":"SF","home":"KC","date":"2026-12-27"},{"away":"TB","home":"ATL","date":"2026-12-27"},{"away":"WAS","home":"MIN","date":"2026-12-27"},{"away":"JAX","home":"DAL","date":"2026-12-27"},{"away":"NYG","home":"DET","date":"2026-12-28"}],"17":[{"away":"BAL","home":"CIN","date":"2026-12-31"},{"away":"BUF","home":"MIA","date":"2027-01-03"},{"away":"IND","home":"CLE","date":"2027-01-03"},{"away":"MIN","home":"NYJ","date":"2027-01-03"},{"away":"NO","home":"ATL","date":"2027-01-03"},{"away":"NYG","home":"DAL","date":"2027-01-03"},{"away":"PIT","home":"TEN","date":"2027-01-03"},{"away":"SEA","home":"CAR","date":"2027-01-03"},{"away":"LV","home":"ARI","date":"2027-01-03"},{"away":"DEN","home":"NE","date":"2027-01-03"},{"away":"DET","home":"CHI","date":"2027-01-03"},{"away":"KC","home":"LAC","date":"2027-01-03"},{"away":"LAR","home":"TB","date":"2027-01-03"},{"away":"WAS","home":"JAX","date":"2027-01-03"},{"away":"PHI","home":"SF","date":"2027-01-03"},{"away":"HOU","home":"GB","date":"2027-01-04"}],"18":[{"away":"CLE","home":"CIN","date":"2027-01-09"},{"away":"LAC","home":"DEN","date":"2027-01-09"},{"away":"NYJ","home":"BUF","date":"2027-01-09"},{"away":"ATL","home":"CAR","date":"2027-01-10"},{"away":"CHI","home":"MIN","date":"2027-01-10"},{"away":"DAL","home":"WAS","date":"2027-01-10"},{"away":"DET","home":"GB","date":"2027-01-10"},{"away":"JAX","home":"IND","date":"2027-01-10"},{"away":"LV","home":"KC","date":"2027-01-10"},{"away":"MIA","home":"NE","date":"2027-01-10"},{"away":"PHI","home":"NYG","date":"2027-01-10"},{"away":"PIT","home":"BAL","date":"2027-01-10"},{"away":"SF","home":"ARI","date":"2027-01-10"},{"away":"SEA","home":"LAR","date":"2027-01-10"},{"away":"TB","home":"NO","date":"2027-01-10"},{"away":"TEN","home":"HOU","date":"2027-01-10"}]};
+  return {poolName:"Synergy Survivor",season:"2026 NFL Season · Company Survivor Pool",
+          currentWeek:1, locked:true, updated:"2026-09-13T20:44:56Z", players, picks, results, schedule, power:{...DEFAULT_POWER}};
+}
+
+let state = sampleState();
+let uiWeek = state.currentWeek;
+let schWeek = state.currentWeek;
+let insWeek = state.currentWeek;
+
+/* ---------- Derivation ---------- */
+function statusOf(pid){
+  let alive=true, elimWeek=null, wins=0; const used=[];
+  for(let w=1; w<=WEEKS; w++){
+    const pick = state.picks[pid] && state.picks[pid][w];
+    if(!pick) continue;
+    used.push(pick);
+    const res = state.results[w] && state.results[w][pick];
+    if(res==="W") wins++;
+    if(res==="L"){ alive=false; elimWeek=w; break; }
+  }
+  return {alive, elimWeek, wins, used};
+}
+function scoredWeeks(){
+  const out=[];
+  for(let w=1; w<=WEEKS; w++){ if(state.results[w] && Object.keys(state.results[w]).length) out.push(w); }
+  return out;
+}
+function survivorsAfter(w){
+  return state.players.filter(p=>{ const s=statusOf(p.id); return s.alive || s.elimWeek>w; }).length;
+}
+function aliveCount(){ return state.players.filter(p=>statusOf(p.id).alive).length; }
+
+/* ---------- Rendering ---------- */
+const $ = s=>document.querySelector(s);
+function teamChip(abbr, small){
+  if(!abbr) return '<span class="muted">—</span>';
+  const t=TEAM[abbr]||{color:"#888",abbr};
+  return `<span class="teamchip"><span class="sw" style="background:${t.color}"></span>${t.abbr}</span>`;
+}
+function renderStamp(){
+  const el=$("#poolStamp"); if(!el) return;
+  if(!state.updated){ el.textContent=''; return; }
+  const d=new Date(state.updated);
+  if(isNaN(d)){ el.textContent=''; return; }
+  el.textContent='Last updated '+d.toLocaleString(undefined,
+    {month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'});
+}
+function renderStats(){
+  const total=state.players.length, alive=aliveCount(), out=total-alive;
+  const cur=state.currentWeek;
+  $("#statRow").innerHTML = `
+    <div class="stat"><div class="k">Players</div><div class="v">${total}</div></div>
+    <div class="stat"><div class="k">Alive</div><div class="v" style="color:var(--win)">${alive}</div></div>
+    <div class="stat"><div class="k">Out</div><div class="v" style="color:var(--loss)">${out}</div></div>
+    <div class="stat"><div class="k">Week</div><div class="v" style="color:var(--brand)">${cur}<small> / ${WEEKS}</small></div></div>`;
+}
+function nickOf(abbr){ const t=TEAM[abbr]; return t? t.name.split(' ').pop() : abbr; }
+function renderStandings(){
+  const rows = state.players.map(p=>({p, s:statusOf(p.id)}));
+  const alive=rows.filter(r=>r.s.alive).sort((a,b)=> b.s.wins-a.s.wins || a.p.name.localeCompare(b.p.name));
+  const dead=rows.filter(r=>!r.s.alive).sort((a,b)=> (b.s.elimWeek||0)-(a.s.elimWeek||0) || a.p.name.localeCompare(b.p.name));
+  const cur=state.currentWeek;
+  const pickCell=(pid)=>{
+    const pk=state.picks[pid]&&state.picks[pid][cur];
+    if(!pk) return '<span class="stout" style="color:var(--loss)">no pick</span>';
+    const t=TEAM[pk]||{color:'#888'};
+    const res=state.results[cur]&&state.results[cur][pk];
+    const mark=res==='W'?' <span class="result-w">✓</span>':res==='L'?' <span class="result-l">✕</span>':'';
+    return `<span class="stpick"><span class="pkdot" style="background:${t.color}"></span>${nickOf(pk)}${mark}</span>`;
+  };
+  let html='';
+  if(alive.length){
+    html+=`<div class="stsec">Still in — ${alive.length}<span class="collabel">Week ${cur} selection</span></div>`;
+    alive.forEach(r=>{ html+=`<div class="strow"><span class="stname clickname" data-pid="${r.p.id}">${esc(r.p.name)}</span>${pickCell(r.p.id)}</div>`; });
+  }
+  if(dead.length){
+    html+=`<div class="stsec" style="margin-top:18px">Eliminated — ${dead.length}</div>`;
+    dead.forEach(r=>{ const pk=state.picks[r.p.id]&&state.picks[r.p.id][r.s.elimWeek]; const tail=pk?` · ${nickOf(pk)}`:'';
+      html+=`<div class="strow dead"><span class="stname clickname" data-pid="${r.p.id}">${esc(r.p.name)}</span><span class="stout">out · wk ${r.s.elimWeek}${tail}</span></div>`; });
+  }
+  if(!rows.length) html='<div class="empty">No players yet — add them on the Players tab.</div>';
+  $("#standingsTable").innerHTML = html;
+}
+function renderGrid(){
+  const rows = state.players.map(p=>({p,s:statusOf(p.id)}));
+  const cur=state.currentWeek;
+  const pk=(pid,wk)=> (state.picks[pid] && state.picks[pid][wk]) || 'zzz'; // no pick sorts last
+  // Alive on top, grouped by this-week's pick so same-team picks form a solid block.
+  // Eliminated cascade below by week-out (latest first), grouped within a week by the team they went out on.
+  rows.sort((a,b)=>{
+    if(a.s.alive!==b.s.alive) return a.s.alive?-1:1;
+    if(a.s.alive) return pk(a.p.id,cur).localeCompare(pk(b.p.id,cur)) || a.p.name.localeCompare(b.p.name);
+    if((b.s.elimWeek||0)!==(a.s.elimWeek||0)) return (b.s.elimWeek||0)-(a.s.elimWeek||0);
+    return pk(a.p.id,a.s.elimWeek).localeCompare(pk(b.p.id,b.s.elimWeek)) || a.p.name.localeCompare(b.p.name);
+  });
+  let head='<tr><th class="pname">Player</th>';
+  for(let w=1;w<=WEEKS;w++) head+=`<th class="num" style="text-align:center">${w}</th>`;
+  head+='</tr>';
+  let body='';
+  rows.forEach(({p,s})=>{
+    body+=`<tr class="${s.alive?'':'dead'}"><td class="pname"><span class="clickname" data-pid="${p.id}">${esc(p.name)}</span></td>`;
+    for(let w=1;w<=WEEKS;w++){
+      const pick=state.picks[p.id]&&state.picks[p.id][w];
+      if(s.elimWeek && w>s.elimWeek){ body+='<td style="text-align:center"><span class="cell none">·</span></td>'; continue; }
+      if(!pick){ body+='<td style="text-align:center"><span class="cell none">—</span></td>'; continue; }
+      const res=state.results[w]&&state.results[w][pick];
+      const cls=res==="W"?"w":res==="L"?"l":"p";
+      body+=`<td style="text-align:center"><span class="cell ${cls}">${pick}</span></td>`;
+    }
+    body+='</tr>';
+  });
+  $("#gridScroll").innerHTML = rows.length? `<table class="matrix"><thead>${head}</thead><tbody>${body}</tbody></table>`
+                                          : '<div class="empty">No players yet.</div>';
+}
+function renderChart(){
+  const wrap=$("#chartWrap");
+  const sw=scoredWeeks();
+  // Show through the current week even before anything is scored, so the full
+  // field is visible from day one.
+  const maxW = Math.max(state.currentWeek||1, sw.length? Math.max(...sw): 0);
+  if(!state.players.length){
+    wrap.innerHTML='<div class="empty">No players yet — the grid fills in once the roster is set.</div>';
+    return;
+  }
+  // Held back until the commissioner locks the pool. Until then, show who we're
+  // still waiting on for the current week.
+  if(!state.locked){
+    const waiting=state.players.filter(p=>!(state.picks[p.id]&&state.picks[p.id][state.currentWeek])).map(p=>p.name);
+    const msg = waiting.length
+      ? 'Waiting on Week '+state.currentWeek+' picks from <b>'+waiting.map(esc).join(', ')+'</b>. The survivors grid opens once every pick is in and the pool is locked.'
+      : 'All Week '+state.currentWeek+' picks are in. The survivors grid opens once the commissioner locks the pool.';
+    wrap.innerHTML='<div class="empty">'+msg+'</div>';
+    return;
+  }
+  // Fixed player order: earliest-out on the left, survivors on the right, so grays accumulate leftward.
+  const order=state.players.map(p=>({p,s:statusOf(p.id)}));
+  order.sort((a,b)=> (a.s.elimWeek||9999)-(b.s.elimWeek||9999) || a.p.name.localeCompare(b.p.name));
+  let rows='';
+  for(let w=1; w<=maxW; w++){
+    let dots='';
+    order.forEach(({p,s})=>{
+      let cls='alive';
+      if(s.elimWeek!=null && s.elimWeek<w) cls='out';
+      else if(s.elimWeek===w) cls='just';
+      dots+=`<span class="ad ${cls}" title="${esc(p.name)}">${esc(initialsOf(p.name))}</span>`;
+    });
+    const remaining=order.filter(o=>o.s.elimWeek==null || o.s.elimWeek>w).length;
+    rows+=`<div class="arow"><div class="awk">W${w}</div><div class="adots">${dots}</div><div class="aleft">${remaining} left</div></div>`;
+  }
+  wrap.innerHTML=`
+    <div class="alegend">
+      <span><i class="ad alive"></i>still alive</span>
+      <span><i class="ad just"></i>eliminated that week</span>
+      <span><i class="ad out"></i>already out</span>
+    </div>
+    <div class="attrition">${rows}</div>`;
+}
+function initialsOf(name){
+  const parts=String(name).trim().split(/\s+/).filter(Boolean);
+  if(!parts.length) return '?';
+  const first=parts[0][0]||'';
+  const last=parts.length>1? (parts[parts.length-1].replace(/[^A-Za-z]/g,'')[0]||'') : '';
+  return (first+last).toUpperCase();
+}
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+/* ---------- Schedule ---------- */
+function weekdayOf(dstr){
+  if(!dstr) return '';
+  const d=new Date(dstr+'T12:00:00');
+  return isNaN(d)?'':['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()];
+}
+function fmtDate(dk){ const d=new Date(dk+'T12:00:00'); if(isNaN(d)) return dk;
+  return d.toLocaleDateString(undefined,{month:'short',day:'numeric'}); }
+/* Won-lost records, built from every schedule game with a recorded winner in a
+   week EARLIER than `week` — so each week's page shows the records teams carried
+   into that week. Set a game's `win` to the winning team abbr, or "TIE". */
+function recordsBefore(week){
+  const rec={};
+  const bump=(t,k)=>{ (rec[t]=rec[t]||{w:0,l:0,t:0})[k]++; };
+  for(let w=1; w<week; w++){
+    ((state.schedule&&state.schedule[w])||[]).forEach(g=>{
+      if(!g.win) return;
+      if(g.win==='TIE'){ bump(g.away,'t'); bump(g.home,'t'); return; }
+      const loser = g.win===g.home? g.away : g.home;
+      bump(g.win,'w'); bump(loser,'l');
+    });
+  }
+  return rec;
+}
+function recLabel(rec,abbr){
+  const r=rec[abbr];
+  if(!r) return '';
+  const txt = r.t? `${r.w}-${r.l}-${r.t}` : `${r.w}-${r.l}`;
+  return ` <span class="rec">(${txt})</span>`;
+}
+function gameCard(g,rec){
+  rec=rec||{};
+  const a=TEAM[g.away]||{color:'#888',abbr:g.away,name:g.away};
+  const h=TEAM[g.home]||{color:'#888',abbr:g.home,name:g.home};
+  return `<div class="game"><div class="mt">
+    <div class="teamrow"><span class="sw" style="background:${a.color}"></span>${a.abbr} <span class="muted" style="font-weight:400">${esc(a.name)}</span>${recLabel(rec,a.abbr)}</div>
+    <div class="at">at</div>
+    <div class="teamrow"><span class="sw" style="background:${h.color}"></span>${h.abbr} <span class="muted" style="font-weight:400">${esc(h.name)}</span>${recLabel(rec,h.abbr)}</div>
+  </div></div>`;
+}
+function renderSchedule(){
+  $("#schWeekNum").textContent=schWeek;
+  let pills=''; for(let w=1;w<=WEEKS;w++) pills+=`<button class="wpill ${w===schWeek?'active':''}" data-w="${w}">${w}</button>`;
+  $("#schPills").innerHTML=pills;
+  const games=(state.schedule&&state.schedule[schWeek])||[];
+  $("#schCount").textContent=games.length? `${games.length} game${games.length===1?'':'s'}` : '';
+  const view=$("#scheduleView");
+  if(!games.length){ view.innerHTML='<div class="empty">No schedule loaded for Week '+schWeek+'.</div>'; return; }
+  const byDate={};
+  games.forEach(g=>{ const k=g.date||'TBD'; (byDate[k]=byDate[k]||[]).push(g); });
+  let html='';
+  const rec=recordsBefore(schWeek);
+  Object.keys(byDate).sort().forEach(dk=>{
+    const label = dk==='TBD'?'Date TBD':`${weekdayOf(dk)} · ${fmtDate(dk)}`;
+    html+=`<div class="sched-day">${label}</div><div class="games">${byDate[dk].map(g=>gameCard(g,rec)).join('')}</div>`;
+  });
+  const playing=new Set(); games.forEach(g=>{ playing.add(g.away); playing.add(g.home); });
+  const bye=TEAMS.filter(t=>!playing.has(t.abbr));
+  if(bye.length) html+=`<div class="byebar"><span class="byelabel">On bye</span>${bye.map(t=>`<span class="teamchip"><span class="sw" style="background:${t.color}"></span>${t.abbr} <span class="muted" style="font-weight:400">${esc(t.name)}</span></span>`).join('')}</div>`;
+  view.innerHTML=html;
+}
+function parseSchedule(text){
+  const out={}; let ok=0, bad=0;
+  text.split(/\r?\n/).forEach(raw=>{
+    const line=raw.trim(); if(!line) return;
+    let wk=null, away=null, home=null, date=null;
+    const dm=line.match(/(\d{4}-\d{2}-\d{2})/); if(dm) date=dm[1];
+    let rest=line.replace(/\d{4}-\d{2}-\d{2}/,'').trim();
+    if(rest.includes(',')){
+      const parts=rest.split(',').map(s=>s.trim()).filter(Boolean);
+      if(parts.length>=3 && /^\d+$/.test(parts[0])){ wk=+parts[0]; away=parts[1]; home=parts[2]; }
+      else if(parts.length>=2){ away=parts[0]; home=parts[1]; }
+    } else {
+      const wm=rest.match(/^\s*(?:week\s*)?(\d{1,2})\b/i);
+      if(wm){ wk=+wm[1]; rest=rest.slice(wm[0].length); }
+      const gm=rest.match(/([A-Za-z]{2,3})\s*(?:@|vs\.?|at)\s*([A-Za-z]{2,3})/i);
+      if(gm){ away=gm[1]; home=gm[2]; }
+    }
+    if(!away||!home){ bad++; return; }
+    away=away.toUpperCase(); home=home.toUpperCase();
+    if(!TEAM[away]||!TEAM[home]){ bad++; return; }
+    if(wk==null) wk=schWeek;
+    if(wk<1||wk>WEEKS){ bad++; return; }
+    (out[wk]=out[wk]||[]).push({away,home,date});
+    ok++;
+  });
+  return {schedule:out, ok, bad};
+}
+
+/* ---------- Insights ---------- */
+function usedTeamsOf(pid){ return new Set(Object.values(state.picks[pid]||{})); }
+function heatColor(t){ // 0 = cool (lonely pick), 1 = hot (chalk)
+  const lerp=(a,b,u)=>{const pa=parseInt(a.slice(1),16),pb=parseInt(b.slice(1),16);
+    const r=Math.round((pa>>16&255)+((pb>>16&255)-(pa>>16&255))*u),g=Math.round((pa>>8&255)+((pb>>8&255)-(pa>>8&255))*u),bl=Math.round((pa&255)+((pb&255)-(pa&255))*u);
+    return `rgb(${r},${g},${bl})`;};
+  return t<0.5? lerp('#3BA0FF','#F5C518',t*2) : lerp('#F5C518','#FF3B3B',(t-0.5)*2);
+}
+function renderPickPop(){
+  $("#insWeekNum").textContent=insWeek;
+  let pills=''; for(let w=1;w<=WEEKS;w++) pills+=`<button class="wpill ${w===insWeek?'active':''}" data-w="${w}">${w}</button>`;
+  $("#insPills").innerHTML=pills;
+  const m={};
+  state.players.forEach(p=>{ const t=state.picks[p.id]&&state.picks[p.id][insWeek]; if(t){ (m[t]=m[t]||[]).push(p.name); } });
+  const entries=Object.entries(m).map(([t,names])=>({t,n:names.length,names})).sort((a,b)=>b.n-a.n||a.t.localeCompare(b.t));
+  if(!entries.length){ $("#pickPop").innerHTML='<div class="empty">No picks entered for Week '+insWeek+' yet.</div>'; return; }
+  const total=entries.reduce((s,e)=>s+e.n,0), max=entries[0].n, min=entries[entries.length-1].n;
+  $("#pickPop").innerHTML=entries.map(e=>{
+    const pct=(e.n/max*100).toFixed(0), share=Math.round(e.n/total*100);
+    const res=state.results[insWeek] && state.results[insWeek][e.t];
+    const mark = res==='W'?'<span class="result-w" title="Won">✓</span> '
+               : res==='L'?'<span class="result-l" title="Lost">✗</span> ' : '';
+    // Bar is always colored by popularity (cool = lonely pick, hot = chalk). ✓ / ✗ show the result once scored.
+    const t=(max-min)?(e.n-min)/(max-min):1;
+    return `<div class="poprow" title="${esc(e.names.join(', '))}"><div>${teamChip(e.t)}</div>
+      <div class="poptrack"><div class="popbar" style="width:${pct}%;background:${heatColor(t)};"></div></div>
+      <div class="popn">${mark}${e.n} <span class="muted" style="font-weight:500">(${share}%)</span></div></div>`;
+  }).join('');
+}
+function renderBurn(){
+  const aliveIds=state.players.filter(p=>statusOf(p.id).alive).map(p=>p.id);
+  const A=aliveIds.length;
+  const aliveUsed={}; aliveIds.forEach(id=>{ usedTeamsOf(id).forEach(t=>aliveUsed[t]=(aliveUsed[t]||0)+1); });
+  const pw=state.power||{};
+  const rows=TEAMS.map(t=>({t, avail:A-(aliveUsed[t.abbr]||0)}))
+    .sort((a,b)=> (pw[b.t.abbr]||0)-(pw[a.t.abbr]||0) || a.t.abbr.localeCompare(b.t.abbr));
+  $("#burnList").innerHTML='<div class="burncols">'+rows.map(r=>{
+    const pct=A?(r.avail/A*100).toFixed(0):0;
+    return `<div class="poprow"><div>${teamChip(r.t.abbr)}</div>
+      <div class="poptrack"><div class="popbar avail" style="width:${pct}%"></div></div>
+      <div class="popn">${r.avail} <span class="muted" style="font-weight:500">of ${A}</span></div></div>`;
+  }).join('')+'</div>';
+}
+function renderHeat(){
+  let maxW=0; state.players.forEach(p=>Object.keys(state.picks[p.id]||{}).forEach(w=>maxW=Math.max(maxW,+w)));
+  if(maxW===0){ $("#heatWrap").innerHTML='<div class="empty">No picks yet — the heatmap fills in as picks come in.</div>'; return; }
+  const data={}; let maxCell=0;
+  TEAMS.forEach(t=>data[t.abbr]=Array(maxW+1).fill(0));
+  state.players.forEach(p=>{ Object.entries(state.picks[p.id]||{}).forEach(([w,t])=>{ if(data[t] && +w<=maxW){ data[t][+w]++; maxCell=Math.max(maxCell,data[t][+w]); } }); });
+  const rows=TEAMS.map(t=>({t,arr:data[t.abbr],total:data[t.abbr].reduce((a,b)=>a+b,0)})).filter(r=>r.total>0).sort((a,b)=>b.total-a.total);
+  let head='<tr><th class="pname">Team</th>';
+  for(let w=1;w<=maxW;w++) head+=`<th style="text-align:center">${w}</th>`;
+  head+='<th style="text-align:center">Total</th></tr>';
+  let body='';
+  rows.forEach(r=>{
+    body+=`<tr><td class="pname">${teamChip(r.t.abbr)}</td>`;
+    for(let w=1;w<=maxW;w++){ const c=r.arr[w];
+      if(!c){ body+='<td style="text-align:center"><span class="muted">·</span></td>'; continue; }
+      const i=maxCell?c/maxCell:0;
+      body+=`<td style="text-align:center"><span class="heatcell" style="background:${heatColor(i)};color:#0B1220">${c}</span></td>`;
+    }
+    body+=`<td style="text-align:center;font-weight:700">${r.total}</td></tr>`;
+  });
+  $("#heatWrap").innerHTML=`<table class="matrix"><thead>${head}</thead><tbody>${body}</tbody></table>`;
+}
+function renderGraveyard(){
+  const kills={};
+  state.players.forEach(p=>{ const s=statusOf(p.id); if(s.elimWeek!=null){ const team=state.picks[p.id]&&state.picks[p.id][s.elimWeek]; if(team){ (kills[team]=kills[team]||[]).push(esc(p.name)+' (W'+s.elimWeek+')'); } } });
+  const rows=Object.entries(kills).map(([abbr,v])=>({abbr,v})).sort((a,b)=>b.v.length-a.v.length||a.abbr.localeCompare(b.abbr));
+  if(!rows.length){ $("#graveyard").innerHTML='<div class="empty">No eliminations yet — the graveyard is empty.</div>'; return; }
+  const max=rows[0].v.length;
+  $("#graveyard").innerHTML=rows.map(r=>`
+    <div class="poprow"><div>${teamChip(r.abbr)}</div>
+      <div class="poptrack"><div class="popbar kill" style="width:${(r.v.length/max*100).toFixed(0)}%"></div></div>
+      <div class="popn">${r.v.length} 💀</div></div>
+    <div class="victims">${r.v.join(' · ')}</div>`).join('');
+}
+function chipRating(abbr,r){ const t=TEAM[abbr]||{color:'#888',abbr}; return `<span class="teamchip"><span class="sw" style="background:${t.color}"></span>${abbr} <span class="muted" style="font-weight:500">${r}</span></span>`; }
+function matchTeam(str){ const s=str.trim().toUpperCase(); if(TEAM[s]) return s; const low=str.toLowerCase();
+  for(const nk in NICK2ABBR){ if(low.includes(nk)) return NICK2ABBR[nk]; } return null; }
+function parsePower(text){
+  const out={}; let ok=0,bad=0;
+  text.split(/\r?\n/).forEach(raw=>{ const line=raw.trim(); if(!line) return;
+    const m=line.match(/(\d{3,4})(?:\.\d+)?/); if(!m){ bad++; return; }
+    const abbr=matchTeam(line.slice(0,m.index).replace(/,/g,' '));
+    if(!abbr){ bad++; return; }
+    out[abbr]=+m[1]; ok++;
+  });
+  return {power:out, ok, bad};
+}
+function renderFirepower(){
+  const power=state.power||{}; const host=$("#firepower");
+  if(!Object.keys(power).length){ host.innerHTML='<div class="empty">No power ratings loaded.</div>'; return; }
+  const alive=state.players.filter(p=>statusOf(p.id).alive);
+  if(!alive.length){ host.innerHTML='<div class="empty">No surviving players.</div>'; return; }
+  const rows=alive.map(p=>{
+    const used=usedTeamsOf(p.id);
+    const remaining=TEAMS.filter(t=>!used.has(t.abbr) && power[t.abbr]!=null);
+    const avg=remaining.length? remaining.reduce((s,t)=>s+power[t.abbr],0)/remaining.length : 0;
+    const top=remaining.slice().sort((a,b)=>power[b.abbr]-power[a.abbr]).slice(0,5);
+    return {p, avg, top};
+  }).sort((a,b)=>b.avg-a.avg);
+  const min=Math.min(...rows.map(r=>r.avg)), max=Math.max(...rows.map(r=>r.avg)), span=(max-min)||1;
+  host.innerHTML=rows.map(r=>{
+    const t=(r.avg-min)/span;               // 1 = most firepower, 0 = least
+    const pct=(20+80*t).toFixed(0);
+    return `<div class="frow"><div class="fhead">
+      <span class="fname">${esc(r.p.name)}</span>
+      <span class="fptrack"><span class="fpbar" style="width:${pct}%;background:${heatColor(t)}"></span></span></div>
+      <div class="fchips">${r.top.map(x=>teamChip(x.abbr)).join('')}</div></div>`;
+  }).join('');
+}
+function renderInsights(){ renderPickPop(); renderGraveyard(); renderBurn(); renderFirepower(); renderHeat(); }
+
+function renderAll(){ renderStamp(); renderStats(); renderStandings(); renderGrid(); renderSchedule(); renderInsights(); renderChart(); }
+
+
+/* ---------- Player detail panel ---------- */
+function openPlayer(pid){
+  const p=state.players.find(x=>x.id===pid); if(!p) return;
+  const s=statusOf(pid);
+  const last = s.alive? state.currentWeek : s.elimWeek;
+  const weeksWon = s.wins;
+  const sub = s.alive
+    ? `Still in · ${weeksWon} week${weeksWon===1?'':'s'} won`
+    : `Lasted ${Math.max(0,s.elimWeek-1)} week${s.elimWeek-1===1?'':'s'} · out on the ${nickOf(state.picks[pid][s.elimWeek])}`;
+  const badge = s.alive? '<span class="badge alive">Alive</span>'
+                       : `<span class="badge out">Out · W${s.elimWeek}</span>`;
+
+  // chip strip — every week up to the current one (or the week they went out)
+  let strip='';
+  for(let w=1; w<=(s.alive? state.currentWeek : s.elimWeek); w++){
+    const t=state.picks[pid]&&state.picks[pid][w];
+    const res=t && state.results[w] && state.results[w][t];
+    const cls = !t? 'none' : res==='W'? 'w-on' : res==='L'? 'l-on' : 'p-on';
+    strip+=`<div class="pchip ${cls}"><div class="w">${w}</div><div class="t">${t||'—'}</div></div>`;
+  }
+
+  let note='';
+  if(!s.alive){
+    const team=state.picks[pid][s.elimWeek];
+    const others=state.players.filter(x=>x.id!==pid && statusOf(x.id).elimWeek===s.elimWeek
+                 && state.picks[x.id] && state.picks[x.id][s.elimWeek]===team).length;
+    const col=(TEAM[team]||{}).color||'#888';
+    note=`<div class="pnote"><span class="sw" style="background:${col}"></span><div>
+      <div style="font-weight:600">${esc(nickOf(team))} lost in week ${s.elimWeek}</div>
+      <div class="psub">${others? others+' other'+(others===1?'':'s')+' went out on the same pick' : 'The only one who took them'}</div>
+    </div></div>`;
+  }
+
+  let avail='';
+  if(s.alive){
+    const used=usedTeamsOf(pid), pw=state.power||{};
+    const rem=TEAMS.filter(t=>!used.has(t.abbr)).sort((a,b)=>(pw[b.abbr]||0)-(pw[a.abbr]||0)).slice(0,6);
+    avail=`<div class="plabel">Best teams still available</div>
+      <div class="fchips">${rem.map(t=>chipRating(t.abbr,pw[t.abbr]||'—')).join('')}</div>`;
+  }
+
+  $("#pBody").innerHTML=`
+    <div class="phead">
+      <div class="pav ${s.alive?'':'out'}">${esc(initialsOf(p.name))}</div>
+      <div style="flex:1;min-width:0">
+        <div class="pname">${esc(p.name)}</div>
+        <div class="psub">${esc(sub)}</div>
+      </div>${badge}
+    </div>
+    <div class="plabel">Pick history</div>
+    <div class="pstrip">${strip}</div>
+    ${note}${avail}
+    <div class="pfoot"><button class="sm" id="pClose2">Close</button></div>`;
+  $("#pMask").hidden=false;
+}
+function closePlayer(){ $("#pMask").hidden=true; }
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-pid]');
+  if(t){ openPlayer(t.dataset.pid); return; }
+  if(e.target.id==='pClose2' || e.target.id==='pMask') closePlayer();
+});
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closePlayer(); });
+
+/* ---------- Events ---------- */
+$("#tabs").addEventListener('click',e=>{
+  const b=e.target.closest('button[data-tab]'); if(!b) return;
+  document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('active',x===b));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active',p.id==='tab-'+b.dataset.tab));
+  if(b.dataset.tab==='standings') renderChart();
+});
+$("#schPills").addEventListener('click',e=>{ const b=e.target.closest('button[data-w]'); if(!b) return; schWeek=+b.dataset.w; renderSchedule(); });
+
+$("#insPills").addEventListener('click',e=>{ const b=e.target.closest('button[data-w]'); if(!b) return; insWeek=+b.dataset.w; renderPickPop(); });
+
+
+$("#themeBtn").onclick=()=>{
+  const dark=document.documentElement.getAttribute('data-theme')==='dark';
+  document.documentElement.setAttribute('data-theme',dark?'light':'dark');
+  $("#themeBtn").textContent=dark?'🌙 Dark':'☀ Light'; renderChart();
+};
+
+
+renderAll();
+</script>
+</body>
+</html>
