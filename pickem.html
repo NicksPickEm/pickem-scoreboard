@@ -163,9 +163,6 @@
   .standings-wrap th:nth-child(2), .standings-wrap td:nth-child(2) { width: 23%; }
   .standings-wrap th:nth-child(3), .standings-wrap td:nth-child(3) { width: 15%; }
   .standings-wrap th:nth-child(4), .standings-wrap td:nth-child(4) { width: 16%; }
-  .standings-wrap th:nth-child(5), .standings-wrap td:nth-child(5) { width: 12%; }
-  .standings-wrap th:nth-child(6), .standings-wrap td:nth-child(6) { width: 12.5%; }
-  .standings-wrap th:nth-child(7), .standings-wrap td:nth-child(7) { width: 12.5%; }
   table { border-collapse: collapse; width: 100%; }
   #picksTable { table-layout: fixed; }
   thead th {
@@ -424,7 +421,7 @@ const RESULTS = {
   13: { winner: "SMU", score: "27-24" },
 };
 const TB_ACTUAL = 51;
-const LAST_UPDATED = "Sep 21, 2026, 4:15 PM ET"; // ✏️ you update this each time you edit results
+const LAST_UPDATED = "Sep 21, 2026, 4:23 PM ET"; // ✏️ you update this each time you edit results
 /* ===================================================================== */
 </script>
 
@@ -513,13 +510,14 @@ const PLAYERS = computePlayers();
 function renderStandings(sortKey = 'total', dir = -1){
   const rows = computeSeason();
   const numWeeks = WEEKS_PLAYED.length;
+  const weekColPct = (36 / numWeeks).toFixed(2) + '%'; // remaining width after the 4 fixed columns (64%)
 
   // Build header once (week count is fixed for this session) -- fixed columns + one per week played
   const headerRow = document.getElementById('standingsHeaderRow');
   if (headerRow.querySelectorAll('th').length < 4 + numWeeks) {
     let extra = '';
     for (let w = 1; w <= numWeeks; w++) {
-      extra += `<th class="sortable num" data-key="wk${w}">${w}</th>`;
+      extra += `<th class="sortable num" data-key="wk${w}" style="width:${weekColPct}">${w}</th>`;
     }
     headerRow.insertAdjacentHTML('beforeend', extra);
   }
@@ -539,7 +537,7 @@ function renderStandings(sortKey = 'total', dir = -1){
     let weekCells = '';
     r.weeks.forEach(w => {
       const cls = w.won ? 'num week-winner' : 'num';
-      weekCells += `<td class="${cls}" title="${w.won ? 'Won this week' : ''}">${w.total}</td>`;
+      weekCells += `<td class="${cls}" style="width:${weekColPct}" title="${w.won ? 'Won this week' : ''}">${w.total}</td>`;
     });
     return `
     <tr>
