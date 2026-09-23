@@ -145,24 +145,21 @@
     background: var(--card-bg);
   }
   html[data-theme="dark"] .table-scroll { border-color: var(--teal-bright); }
-  /* Standings: no horizontal scroll, columns fit the page, header stays visible while scrolling */
+  /* Standings: horizontal scroll once there are too many week columns to fit */
   .standings-wrap {
-    overflow-x: visible;
+    overflow-x: auto;
+    overflow-y: visible;
     border: 2px solid var(--slate);
     border-radius: 10px;
     background: var(--card-bg);
   }
   html[data-theme="dark"] .standings-wrap { border-color: var(--teal-bright); }
-  .standings-wrap table { table-layout: fixed; width: 100%; }
+  .standings-wrap table { table-layout: auto; width: 100%; min-width: 560px; }
   .standings-wrap thead th { position: sticky; top: 0; z-index: 3; }
-  .standings-wrap td, .standings-wrap th { white-space: normal; }
-  .standings-wrap td { word-break: break-word; }
-  .standings-wrap th { overflow-wrap: normal; word-break: normal; }
-  .standings-wrap td.player-name { position: static; }
-  .standings-wrap th:nth-child(1), .standings-wrap td:nth-child(1) { width: 10%; white-space: nowrap; text-align: center; padding-left: 6px; padding-right: 6px; }
-  .standings-wrap th:nth-child(2), .standings-wrap td:nth-child(2) { width: 23%; }
-  .standings-wrap th:nth-child(3), .standings-wrap td:nth-child(3) { width: 15%; }
-  .standings-wrap th:nth-child(4), .standings-wrap td:nth-child(4) { width: 16%; }
+  .standings-wrap td, .standings-wrap th { white-space: nowrap; }
+  .standings-wrap td.player-name { position: static; white-space: nowrap; width: auto; min-width: 0; max-width: none; overflow: visible; text-overflow: clip; }
+  .standings-wrap th:nth-child(1), .standings-wrap td:nth-child(1) { text-align: center; padding-left: 6px; padding-right: 6px; }
+  .standings-wrap th.wk-col, .standings-wrap td.wk-col { min-width: 56px; }
   table { border-collapse: collapse; width: 100%; }
   #picksTable { table-layout: fixed; }
   thead th {
@@ -421,7 +418,7 @@ const RESULTS = {
   13: { winner: "SMU", score: "27-24" },
 };
 const TB_ACTUAL = 51;
-const LAST_UPDATED = "Sep 23, 2026, 8:36 AM ET"; // ✏️ you update this each time you edit results
+const LAST_UPDATED = "Sep 23, 2026, 9:30 AM ET"; // ✏️ you update this each time you edit results
 /* ===================================================================== */
 </script>
 
@@ -510,14 +507,13 @@ const PLAYERS = computePlayers();
 function renderStandings(sortKey = 'total', dir = -1){
   const rows = computeSeason();
   const numWeeks = WEEKS_PLAYED.length;
-  const weekColPct = (36 / numWeeks).toFixed(2) + '%'; // remaining width after the 4 fixed columns (64%)
 
   // Build header once (week count is fixed for this session) -- fixed columns + one per week played
   const headerRow = document.getElementById('standingsHeaderRow');
   if (headerRow.querySelectorAll('th').length < 4 + numWeeks) {
     let extra = '';
     for (let w = 1; w <= numWeeks; w++) {
-      extra += `<th class="sortable num" data-key="wk${w}" style="width:${weekColPct}">${w}</th>`;
+      extra += `<th class="sortable num wk-col" data-key="wk${w}">${w}</th>`;
     }
     headerRow.insertAdjacentHTML('beforeend', extra);
   }
@@ -536,8 +532,8 @@ function renderStandings(sortKey = 'total', dir = -1){
   tbody.innerHTML = rows.map(r => {
     let weekCells = '';
     r.weeks.forEach(w => {
-      const cls = w.won ? 'num week-winner' : 'num';
-      weekCells += `<td class="${cls}" style="width:${weekColPct}" title="${w.won ? 'Won this week' : ''}">${w.total}</td>`;
+      const cls = w.won ? 'num week-winner wk-col' : 'num wk-col';
+      weekCells += `<td class="${cls}" title="${w.won ? 'Won this week' : ''}">${w.total}</td>`;
     });
     return `
     <tr>
