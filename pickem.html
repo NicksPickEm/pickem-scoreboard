@@ -162,15 +162,23 @@
     width: 60px; min-width: 60px; max-width: 60px; text-align: center; padding-left: 6px; padding-right: 6px;
     background: var(--card-bg);
   }
-  .standings-wrap thead th:nth-child(1) { z-index: 4; }
+  .standings-wrap thead th:nth-child(1) { z-index: 4; background: var(--slate); color: #fff; }
   .standings-wrap tbody tr:nth-child(even) td:nth-child(1) { background: var(--row-alt); }
   .standings-wrap th:nth-child(2), .standings-wrap td:nth-child(2) {
     position: sticky; left: 60px; z-index: 2;
-    white-space: nowrap; width: auto; min-width: 0; max-width: none; overflow: visible; text-overflow: clip;
+    white-space: nowrap; width: 100px; min-width: 100px; max-width: 100px; overflow: hidden; text-overflow: ellipsis;
+    padding-left: 8px; padding-right: 4px;
     background: var(--card-bg);
   }
-  .standings-wrap thead th:nth-child(2) { z-index: 4; }
+  .standings-wrap thead th:nth-child(2) { z-index: 4; background: var(--slate); color: #fff; }
   .standings-wrap tbody tr:nth-child(even) td:nth-child(2) { background: var(--row-alt); }
+  .standings-wrap th:nth-child(3), .standings-wrap td:nth-child(3) {
+    position: sticky; left: 160px; z-index: 2;
+    white-space: nowrap; width: 52px; min-width: 52px; max-width: 52px;
+    background: var(--card-bg); box-shadow: 2px 0 4px -2px rgba(0,0,0,0.25);
+  }
+  .standings-wrap thead th:nth-child(3) { z-index: 4; background: var(--slate); color: #fff; }
+  .standings-wrap tbody tr:nth-child(even) td:nth-child(3) { background: var(--row-alt); }
   .standings-wrap th.wk-col, .standings-wrap td.wk-col { min-width: 56px; }
   table { border-collapse: collapse; width: 100%; }
   #picksTable { table-layout: fixed; }
@@ -430,7 +438,7 @@ const RESULTS = {
   13: { winner: "SMU", score: "27-24" },
 };
 const TB_ACTUAL = 51;
-const LAST_UPDATED = "Oct 3, 2026, 4:38 AM ET"; // ✏️ you update this each time you edit results
+const LAST_UPDATED = "Oct 3, 2026, 6:33 AM ET"; // ✏️ you update this each time you edit results
 /* ===================================================================== */
 </script>
 
