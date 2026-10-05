@@ -438,7 +438,7 @@ const RESULTS = {
   13: { winner: "SMU", score: "27-24" },
 };
 const TB_ACTUAL = 51;
-const LAST_UPDATED = "Oct 5, 2026, 2:21 PM ET"; // ✏️ you update this each time you edit results
+const LAST_UPDATED = "Oct 5, 2026, 2:30 PM ET"; // ✏️ you update this each time you edit results
 /* ===================================================================== */
 </script>
 
@@ -897,7 +897,7 @@ function renderPickGrid(weekIdx, sortKey = 'total', dir = -1){
     r.picks.forEach((pick, i) => {
       if (cfg.hasReveal && !revealed[i]) {
         if (!pick) {
-          cells += `<td class="pick-cell locked"><span class="no-pick">No Pick</span></td>`;
+          cells += `<td class="pick-cell locked"><span class="no-pick">—</span></td>`;
         } else {
           cells += `<td class="pick-cell locked">🔒</td>`;
         }
@@ -909,15 +909,16 @@ function renderPickGrid(weekIdx, sortKey = 'total', dir = -1){
       if (flag === true) classes.push('correct');
       if (flag === false && hasPick) classes.push('incorrect');
       if (r.dbl[i]) classes.push('dbl');
-      const text = hasPick ? pick : `<span class="no-pick">No Pick</span>`;
+      const missed = pick === 'NO PICK' || (!pick && flag !== null);
+      const text = hasPick ? pick : (missed ? `<span class="no-pick">No Pick</span>` : `<span class="no-pick">—</span>`);
       cells += `<td class="${classes.join(' ')}">${text}</td>`;
     });
     if (tbRevealed) {
-      cells += `<td class="num">${r.tbGuess != null ? r.tbGuess : '<span class="no-pick">No Pick</span>'}</td>`;
+      cells += `<td class="num">${r.tbGuess != null ? r.tbGuess : '<span class="no-pick">—</span>'}</td>`;
       cells += `<td class="num">${r.tbDiff != null ? r.tbDiff : '—'}</td>`;
     } else {
       const hasGuess = typeof r.tbGuess === 'number';
-      cells += `<td class="num pick-cell locked">${hasGuess ? '🔒' : '<span class="no-pick">No Pick</span>'}</td>`;
+      cells += `<td class="num pick-cell locked">${hasGuess ? '🔒' : '<span class="no-pick">—</span>'}</td>`;
       cells += `<td class="num pick-cell locked">${hasGuess ? '🔒' : '—'}</td>`;
     }
     return `<tr>${cells}</tr>`;
