@@ -438,7 +438,7 @@ const RESULTS = {
   13: { winner: "SMU", score: "27-24" },
 };
 const TB_ACTUAL = 51;
-const LAST_UPDATED = "Oct 10, 2026, 7:32 PM ET"; // ✏️ you update this each time you edit results
+const LAST_UPDATED = "Oct 10, 2026, 11:23 PM ET"; // ✏️ you update this each time you edit results
 /* ===================================================================== */
 </script>
 
@@ -718,8 +718,12 @@ const WEEK6_RESULTS = {
   7: { winner: "Houston", score: "35-16" },
   8: { winner: "UCLA", score: "17-15" },
   9: { winner: "Oklahoma", score: "27-24" },
+  10: { winner: "Kentucky", score: "35-34" },
+  11: { winner: "Georgia", score: "20-17" },
+  12: { winner: "USC", score: "31-23" },
+  13: { winner: "Purdue", score: "41-13" },
 }; // filled in as games are decided
-const WEEK6_TB_ACTUAL = null; // Georgia at Alabama (Game 11) is the designated Week 6 tiebreaker game
+const WEEK6_TB_ACTUAL = 37; // Georgia at Alabama (Game 11) is the designated Week 6 tiebreaker game
 const WEEK6_PLAYERS = computeWeekPlayers(WEEK6_DATA, WEEK6_RESULTS, WEEK6_TB_ACTUAL);
 
 // ---------- SEASON-WIDE COMBINATION (all weeks played so far) ----------
@@ -897,6 +901,11 @@ function renderPickGrid(weekIdx, sortKey = 'total', dir = -1){
     if (sortKey === 'name') cmp = a.name.localeCompare(b.name);
     else cmp = a.total - b.total;
     if (cmp !== 0) return cmp * dir;
+    if (sortKey !== 'name' && tbRevealed) {
+      // Tied on points: closest tiebreaker guess ranks first (no guess / no result sorts last)
+      const ad = a.tbDiff == null ? Infinity : a.tbDiff, bd = b.tbDiff == null ? Infinity : b.tbDiff;
+      if (ad !== bd) return ad < bd ? -1 : 1;
+    }
     return a.name.localeCompare(b.name);
   });
   const tbody = document.getElementById('pickGridBody');
