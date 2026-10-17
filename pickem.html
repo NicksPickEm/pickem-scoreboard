@@ -438,7 +438,7 @@ const RESULTS = {
   13: { winner: "SMU", score: "27-24" },
 };
 const TB_ACTUAL = 51;
-const LAST_UPDATED = "Oct 17, 2026, 12:39 PM ET"; // ✏️ you update this each time you edit results
+const LAST_UPDATED = "Oct 17, 2026, 12:45 PM ET"; // ✏️ you update this each time you edit results
 /* ===================================================================== */
 </script>
 
@@ -898,19 +898,42 @@ function renderPickGrid(weekIdx, sortKey = 'total', dir = -1){
   document.getElementById('pickGridLegend').innerHTML = legendHtml;
 
   const headerRow = document.getElementById('pickGridHeaderRow');
-  let headerHtml = `<th class="player-col sortable" data-key="name">Player</th><th class="total-col sortable" data-key="total">Total</th>`;
-  cfg.data.labels.forEach(label => {
+  const arrow = k => sortKey === k ? (dir === 1 ? ' ▲' : ' ▼') : '';
+  let headerHtml = `<th class="player-col sortable" data-key="name">Player${arrow('name')}</th><th class="total-col sortable" data-key="total">Total${arrow('total')}</th>`;
+  cfg.data.labels.forEach((label, gi) => {
     const [num, matchup] = label.split('\n');
-    headerHtml += cfg.hasReveal ? `<th>${matchup}</th>` : `<th>${num}<br>${matchup}</th>`;
+    headerHtml += cfg.hasReveal ? `<th class="sortable" data-key="g${gi}">${matchup}${arrow('g' + gi)}</th>` : `<th class="sortable" data-key="g${gi}">${num}<br>${matchup}${arrow('g' + gi)}</th>`;
   });
-  headerHtml += `<th class="num">TB Guess</th><th class="num">TB Diff</th>`;
+  headerHtml += `<th class="num sortable" data-key="tbGuess">TB Guess${arrow('tbGuess')}</th><th class="num sortable" data-key="tbDiff">TB Diff${arrow('tbDiff')}</th>`;
   headerRow.innerHTML = headerHtml;
 
+  // Value used when sorting by a column. Locked (not yet revealed) picks and
+  // tiebreaker guesses return null so sorting can never leak hidden information.
+  const sortVal = (r) => {
+    if (sortKey === 'name') return r.name;
+    if (sortKey === 'total') return r.total;
+    if (sortKey === 'tbGuess') return tbRevealed && typeof r.tbGuess === 'number' ? r.tbGuess : null;
+    if (sortKey === 'tbDiff') return tbRevealed && r.tbDiff != null ? r.tbDiff : null;
+    if (sortKey[0] === 'g') {
+      const gi = parseInt(sortKey.slice(1), 10);
+      if (cfg.hasReveal && !revealed[gi]) return null;
+      const pk = r.picks[gi];
+      return pk && pk !== 'NO PICK' ? pk : null;
+    }
+    return null;
+  };
   const sorted = [...cfg.players].sort((a, b) => {
-    let cmp;
-    if (sortKey === 'name') cmp = a.name.localeCompare(b.name);
-    else cmp = a.total - b.total;
-    if (cmp !== 0) return cmp * dir;
+    let cmp = 0;
+    if (sortKey === 'total') cmp = (a.total - b.total) * dir;
+    else {
+      const av = sortVal(a), bv = sortVal(b);
+      if (av == null && bv == null) cmp = 0;
+      else if (av == null) cmp = 1;      // empty / locked always last
+      else if (bv == null) cmp = -1;
+      else cmp = (typeof av === 'number' ? av - bv : av.localeCompare(bv)) * dir;
+    }
+    if (cmp !== 0) return cmp;
+    if (sortKey !== 'total') return (b.total - a.total) || a.name.localeCompare(b.name);
     if (sortKey !== 'name' && tbRevealed) {
       // Tied on points: closest tiebreaker guess ranks first (no guess / no result sorts last)
       const ad = a.tbDiff == null ? Infinity : a.tbDiff, bd = b.tbDiff == null ? Infinity : b.tbDiff;
@@ -978,7 +1001,7 @@ document.getElementById('pickGridHeaderRow').addEventListener('click', (e) => {
   const th = e.target.closest('th.sortable');
   if (!th) return;
   const key = th.dataset.key;
-  pickGridSort.dir = (pickGridSort.key === key) ? -pickGridSort.dir : (key === 'name' ? 1 : -1);
+  pickGridSort.dir = (pickGridSort.key === key) ? -pickGridSort.dir : (key === 'total' ? -1 : 1);
   pickGridSort.key = key;
   renderPickGrid(currentWeekIdx, pickGridSort.key, pickGridSort.dir);
 });
