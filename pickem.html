@@ -438,7 +438,7 @@ const RESULTS = {
   13: { winner: "SMU", score: "27-24" },
 };
 const TB_ACTUAL = 51;
-const LAST_UPDATED = "Oct 17, 2026, 8:13 PM ET"; // ✏️ you update this each time you edit results
+const LAST_UPDATED = "Oct 18, 2026, 7:37 AM ET"; // ✏️ you update this each time you edit results
 /* ===================================================================== */
 </script>
 
@@ -736,12 +736,18 @@ const WEEK7_RESULTS = {
   5: { winner: "LSU", score: "31-0" },
   6: { winner: "Ole Miss", score: "31-3" },
   7: { winner: "Michigan", score: "21-18" },
+  8: { winner: "TCU", score: "17-6" },
+  9: { winner: "BYU", score: "28-24" },
+  10: { winner: "UCLA", score: "17-7" },
+  11: { winner: "Kentucky", score: "21-13" },
+  12: { winner: "Houston", score: "35-32" },
+  13: { winner: "Oregon", score: "17-14" },
 }; // filled in as games are decided
 const WEEK7_TB_ACTUAL = 34; // Missouri at Ole Miss (Game 6) is the designated Week 7 tiebreaker game
 const WEEK7_PLAYERS = computeWeekPlayers(WEEK7_DATA, WEEK7_RESULTS, WEEK7_TB_ACTUAL);
 
 // ---------- SEASON-WIDE COMBINATION (all weeks played so far) ----------
-const WEEKS_PLAYED = [PLAYERS, WEEK2_PLAYERS, WEEK3_PLAYERS, WEEK4_PLAYERS, WEEK5_PLAYERS, WEEK6_PLAYERS]; // append WEEK7_PLAYERS, etc. as future weeks are added
+const WEEKS_PLAYED = [PLAYERS, WEEK2_PLAYERS, WEEK3_PLAYERS, WEEK4_PLAYERS, WEEK5_PLAYERS, WEEK6_PLAYERS, WEEK7_PLAYERS]; // append WEEK7_PLAYERS, etc. as future weeks are added
 
 function computeSeason(){
   const names = WEEKS_PLAYED[0].map(p => p.name);
