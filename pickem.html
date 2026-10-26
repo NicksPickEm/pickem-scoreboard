@@ -449,7 +449,7 @@ const RESULTS = {
   13: { winner: "SMU", score: "27-24" },
 };
 const TB_ACTUAL = 51;
-const LAST_UPDATED = 'Oct 26, 2026, 10:20 AM ET'; // ✏️ you update this each time you edit results
+const LAST_UPDATED = 'Oct 26, 2026, 10:30 AM ET'; // ✏️ you update this each time you edit results
 /* ===================================================================== */
 </script>
 
@@ -946,13 +946,13 @@ function renderSimBar(cfg){
   const open = cfg.data.opponents.some((_, i) => !cfg.resultsObj[i + 1]);
   if (!open) { bar.innerHTML = ''; return; }
   const tbGame = cfg.data.tiebreakerGame || 1;
-  bar.innerHTML = `<div class="sim-title">🎯 What-if: tap a team to call any unplayed game and the grid below re-grades. Not saved, not real.</div>
+  bar.innerHTML = `<div class="sim-title">Official score not posted yet? Tap the winner of any game below and the grid updates instantly. Your picks are saved on your device only, and the official result replaces them once it's posted.</div>
     <div class="sim-ctrls">
       <button class="print-btn" id="simFav">All favorites</button>
       <button class="print-btn" id="simDog">All underdogs</button>
       <button class="print-btn" id="simReset">Reset</button>
       ${cfg.tbActual == null ? `<label>Game ${tbGame} total pts <input type="number" id="simTbIn" min="0" inputmode="numeric" value="${simTb}"></label>` : ''}
-      <span class="sim-count">${simActive() ? Object.keys(simPicks).length + ' called' : ''}</span>
+      <span class="sim-count">${simActive() ? Object.keys(simPicks).length + ' called by you' : ''}</span>
     </div>`;
 }
 
@@ -1055,7 +1055,7 @@ function renderPickGrid(weekIdx, sortKey = 'total', dir = -1){
   // (i.e. until Saturday noon ET), so nobody can see others' guesses early.
   const tbRevealed = cfg.hasReveal ? revealed.every(r => r) : true;
 
-  document.getElementById('pickGridNote').textContent = `Every player's picks for Week ${cfg.num}. ${cfg.noteText}` + (simActive() ? ' — ⚠️ WHAT-IF MODE: scores include your simulated winners.' : '');
+  document.getElementById('pickGridNote').textContent = `Every player's picks for Week ${cfg.num}. ${cfg.noteText}` + (simActive() ? ' — Showing your own winner picks for games without an official result.' : '');
 
   let legendHtml = `
     <span><span class="swatch" style="background:var(--green-bg);border:1px solid var(--green)"></span> Correct pick</span>
