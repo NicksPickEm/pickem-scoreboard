@@ -449,7 +449,7 @@ const RESULTS = {
   13: { winner: "SMU", score: "27-24" },
 };
 const TB_ACTUAL = 51;
-const LAST_UPDATED = 'Oct 26, 2026, 10:10 AM ET'; // ✏️ you update this each time you edit results
+const LAST_UPDATED = 'Oct 26, 2026, 10:20 AM ET'; // ✏️ you update this each time you edit results
 /* ===================================================================== */
 </script>
 
@@ -891,6 +891,28 @@ function pickBarHtml(cfg, i){
 let simPicks = {};  // game number -> team (resets on week change / reload; never saved)
 let simTb = '';
 
+// Saved only in the visitor's own browser (never sent anywhere). Wrapped in try/catch so blocked storage can't break the page.
+const SIM_KEY = 'pickem-whatif-v1';
+function simStore(){ try { return JSON.parse(localStorage.getItem(SIM_KEY)) || {}; } catch (e) { return {}; } }
+function simSave(){
+  try {
+    const cfg = WEEKS_CONFIG[currentWeekIdx], all = simStore();
+    if (simActive() || simTb) all[cfg.num] = { picks: simPicks, tb: simTb }; else delete all[cfg.num];
+    localStorage.setItem(SIM_KEY, JSON.stringify(all));
+  } catch (e) {}
+}
+function simLoad(){
+  simPicks = {}; simTb = '';
+  const cfg = WEEKS_CONFIG[currentWeekIdx], saved = simStore()[cfg.num];
+  if (!saved) return;
+  cfg.data.opponents.forEach((o, i) => {
+    const t = saved.picks && saved.picks[i + 1];
+    if (t && o.includes(t) && !cfg.resultsObj[i + 1]) simPicks[i + 1] = t; // drop picks for games that now have a real result
+  });
+  if (cfg.tbActual == null && saved.tb) simTb = String(saved.tb);
+  simSave();
+}
+
 function simActive(){ return Object.keys(simPicks).length > 0; }
 
 function effResults(cfg){
@@ -935,6 +957,7 @@ function renderSimBar(cfg){
 }
 
 function simRefresh(){
+  simSave();
   renderResultsGridUnified(currentWeekIdx);
   renderPickGrid(currentWeekIdx, pickGridSort.key, pickGridSort.dir);
 }
@@ -961,6 +984,7 @@ document.getElementById('simBar').addEventListener('click', e => {
 document.getElementById('simBar').addEventListener('input', e => {
   if (e.target.id !== 'simTbIn') return;
   simTb = e.target.value;
+  simSave();
   renderPickGrid(currentWeekIdx, pickGridSort.key, pickGridSort.dir);
 });
 
@@ -1130,7 +1154,7 @@ function renderWeekSelector(){
 
 function switchWeek(idx){
   currentWeekIdx = idx;
-  simPicks = {}; simTb = '';
+  simLoad();
   pickGridSort = { key: 'total', dir: -1 };
   renderWeekSelector();
   renderResultsGridUnified(idx);
@@ -1231,6 +1255,7 @@ document.getElementById('footerNote').textContent =
   DATA.players.length + ' players \u2022 13 games per week \u2022 2026 season';
 
 /* ---------- INITIAL RENDER ---------- */
+simLoad();
 renderStandings();
 renderWeekSelector();
 renderResultsGridUnified(currentWeekIdx);
