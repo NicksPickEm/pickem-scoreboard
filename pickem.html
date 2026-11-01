@@ -454,7 +454,7 @@ const RESULTS = {
   13: { winner: "SMU", score: "27-24" },
 };
 const TB_ACTUAL = 51;
-const LAST_UPDATED = 'Oct 31, 2026, 9:58 PM ET'; // ✏️ you update this each time you edit results
+const LAST_UPDATED = 'Nov 1, 2026, 10:00 AM ET'; // ✏️ you update this each time you edit results
 /* ===================================================================== */
 </script>
 
@@ -795,12 +795,16 @@ const WEEK9_RESULTS = {
   7: { winner: "Oregon", score: "34-26" },
   8: { winner: "Utah", score: "49-25" },
   9: { winner: "South Carolina", score: "42-25" },
+  10: { winner: "Clemson", score: "36-24" },
+  11: { winner: "San Diego State", score: "26-20" },
+  12: { winner: "USC", score: "30-18" },
+  13: { winner: "Pitt", score: "34-11" },
 }; // filled in as games are decided
 const WEEK9_TB_ACTUAL = 35; // Florida at Georgia (Game 5) is the designated Week 9 tiebreaker game
 const WEEK9_PLAYERS = computeWeekPlayers(WEEK9_DATA, WEEK9_RESULTS, WEEK9_TB_ACTUAL);
 
 // ---------- SEASON-WIDE COMBINATION (all weeks played so far) ----------
-const WEEKS_PLAYED = [PLAYERS, WEEK2_PLAYERS, WEEK3_PLAYERS, WEEK4_PLAYERS, WEEK5_PLAYERS, WEEK6_PLAYERS, WEEK7_PLAYERS, WEEK8_PLAYERS]; // append WEEK7_PLAYERS, etc. as future weeks are added
+const WEEKS_PLAYED = [PLAYERS, WEEK2_PLAYERS, WEEK3_PLAYERS, WEEK4_PLAYERS, WEEK5_PLAYERS, WEEK6_PLAYERS, WEEK7_PLAYERS, WEEK8_PLAYERS, WEEK9_PLAYERS]; // append WEEK7_PLAYERS, etc. as future weeks are added
 
 function computeSeason(){
   const names = WEEKS_PLAYED[0].map(p => p.name);
