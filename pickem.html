@@ -454,7 +454,7 @@ const RESULTS = {
   13: { winner: "SMU", score: "27-24" },
 };
 const TB_ACTUAL = 51;
-const LAST_UPDATED = 'Nov 7, 2026, 7:26 PM ET'; // ✏️ you update this each time you edit results
+const LAST_UPDATED = 'Nov 7, 2026, 11:19 PM ET'; // ✏️ you update this each time you edit results
 /* ===================================================================== */
 </script>
 
@@ -812,13 +812,19 @@ const WEEK10_RESULTS = {
   4: { winner: "Duke", score: "41-3" },
   5: { winner: "Alabama", score: "31-13" },
   6: { winner: "Oregon", score: "41-28" },
-  7: { winner: "Penn State", score: "28-25" }
+  7: { winner: "Penn State", score: "28-25" },
+  8: { winner: "Tennessee", score: "34-6" },
+  9: { winner: "Iowa", score: "24-10" },
+  10: { winner: "Notre Dame", score: "31-24" },
+  11: { winner: "Georgia", score: "42-7" },
+  12: { winner: "Air Force", score: "24-21" },
+  13: { winner: "Oklahoma", score: "20-7" }
 }; // filled in as games are decided
-const WEEK10_TB_ACTUAL = null; // Miami at Notre Dame (Game 10) is the designated Week 10 tiebreaker game
+const WEEK10_TB_ACTUAL = 55; // Miami at Notre Dame (Game 10) is the designated Week 10 tiebreaker game
 const WEEK10_PLAYERS = computeWeekPlayers(WEEK10_DATA, WEEK10_RESULTS, WEEK10_TB_ACTUAL);
 
 // ---------- SEASON-WIDE COMBINATION (all weeks played so far) ----------
-const WEEKS_PLAYED = [PLAYERS, WEEK2_PLAYERS, WEEK3_PLAYERS, WEEK4_PLAYERS, WEEK5_PLAYERS, WEEK6_PLAYERS, WEEK7_PLAYERS, WEEK8_PLAYERS, WEEK9_PLAYERS]; // append WEEK7_PLAYERS, etc. as future weeks are added
+const WEEKS_PLAYED = [PLAYERS, WEEK2_PLAYERS, WEEK3_PLAYERS, WEEK4_PLAYERS, WEEK5_PLAYERS, WEEK6_PLAYERS, WEEK7_PLAYERS, WEEK8_PLAYERS, WEEK9_PLAYERS, WEEK10_PLAYERS]; // append WEEK7_PLAYERS, etc. as future weeks are added
 
 function computeSeason(){
   const names = WEEKS_PLAYED[0].map(p => p.name);
