@@ -454,7 +454,7 @@ const RESULTS = {
   13: { winner: "SMU", score: "27-24" },
 };
 const TB_ACTUAL = 51;
-const LAST_UPDATED = 'Nov 15, 2026, 8:38 AM ET'; // ✏️ you update this each time you edit results
+const LAST_UPDATED = 'Nov 15, 2026, 4:24 PM ET'; // ✏️ you update this each time you edit results
 /* ===================================================================== */
 </script>
 
@@ -831,6 +831,7 @@ const WEEK11_RESULTS = {
   4: { winner: 'Tennessee', score: '22-7' },
   5: { winner: 'Indiana', score: '27-13' },
   6: { winner: 'Arizona State', score: '26-13' },
+  7: { winner: 'Oklahoma', score: '24-17' },
   8: { winner: 'Kansas', score: '37-14' },
   9: { winner: 'Florida', score: '21-14' },
   10: { winner: 'Louisville', score: '16-14' },
@@ -842,7 +843,7 @@ const WEEK11_TB_ACTUAL = 51; // Kansas at West Virginia (Game 8) is the designat
 const WEEK11_PLAYERS = computeWeekPlayers(WEEK11_DATA, WEEK11_RESULTS, WEEK11_TB_ACTUAL);
 
 // ---------- SEASON-WIDE COMBINATION (all weeks played so far) ----------
-const WEEKS_PLAYED = [PLAYERS, WEEK2_PLAYERS, WEEK3_PLAYERS, WEEK4_PLAYERS, WEEK5_PLAYERS, WEEK6_PLAYERS, WEEK7_PLAYERS, WEEK8_PLAYERS, WEEK9_PLAYERS, WEEK10_PLAYERS]; // append WEEK7_PLAYERS, etc. as future weeks are added
+const WEEKS_PLAYED = [PLAYERS, WEEK2_PLAYERS, WEEK3_PLAYERS, WEEK4_PLAYERS, WEEK5_PLAYERS, WEEK6_PLAYERS, WEEK7_PLAYERS, WEEK8_PLAYERS, WEEK9_PLAYERS, WEEK10_PLAYERS, WEEK11_PLAYERS]; // append WEEK7_PLAYERS, etc. as future weeks are added
 
 function computeSeason(){
   const names = WEEKS_PLAYED[0].map(p => p.name);
