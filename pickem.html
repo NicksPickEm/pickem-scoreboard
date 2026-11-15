@@ -454,7 +454,7 @@ const RESULTS = {
   13: { winner: "SMU", score: "27-24" },
 };
 const TB_ACTUAL = 51;
-const LAST_UPDATED = 'Nov 14, 2026, 12:13 PM ET'; // ✏️ you update this each time you edit results
+const LAST_UPDATED = 'Nov 14, 2026, 7:21 PM ET'; // ✏️ you update this each time you edit results
 /* ===================================================================== */
 </script>
 
@@ -824,8 +824,14 @@ const WEEK10_RESULTS = {
 }; // filled in as games are decided
 const WEEK10_TB_ACTUAL = 55; // Miami at Notre Dame (Game 10) is the designated Week 10 tiebreaker game
 const WEEK10_PLAYERS = computeWeekPlayers(WEEK10_DATA, WEEK10_RESULTS, WEEK10_TB_ACTUAL);
-const WEEK11_RESULTS = {}; // filled in as games are decided
-const WEEK11_TB_ACTUAL = null; // Kansas at West Virginia (Game 8) is the designated Week 11 tiebreaker game
+const WEEK11_RESULTS = {
+  2: { winner: 'Wake Forest', score: '49-7' },
+  3: { winner: 'Iowa State', score: '41-13' },
+  4: { winner: 'Tennessee', score: '22-7' },
+  5: { winner: 'Indiana', score: '27-13' },
+  8: { winner: 'Kansas', score: '37-14' },
+}; // filled in as games are decided
+const WEEK11_TB_ACTUAL = 51; // Kansas at West Virginia (Game 8) is the designated Week 11 tiebreaker game
 const WEEK11_PLAYERS = computeWeekPlayers(WEEK11_DATA, WEEK11_RESULTS, WEEK11_TB_ACTUAL);
 
 // ---------- SEASON-WIDE COMBINATION (all weeks played so far) ----------
