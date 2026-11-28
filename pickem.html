@@ -454,7 +454,7 @@ const RESULTS = {
   13: { winner: "SMU", score: "27-24" },
 };
 const TB_ACTUAL = 51;
-const LAST_UPDATED = 'Nov 27, 2026, 3:31 PM ET'; // ✏️ you update this each time you edit results
+const LAST_UPDATED = 'Nov 27, 2026, 7:15 PM ET'; // ✏️ you update this each time you edit results
 /* ===================================================================== */
 </script>
 
@@ -862,8 +862,11 @@ const WEEK12_RESULTS = {
 }; // filled in as games are decided
 const WEEK12_TB_ACTUAL = 49; // USF at Florida Atlantic (Game 6) is the designated Week 12 tiebreaker game
 const WEEK12_PLAYERS = computeWeekPlayers(WEEK12_DATA, WEEK12_RESULTS, WEEK12_TB_ACTUAL);
-const WEEK13_RESULTS = {}; // filled in as games are decided
-const WEEK13_TB_ACTUAL = null; // Florida at Florida State (Game 2) is the designated Week 13 tiebreaker game
+const WEEK13_RESULTS = {
+  1: { winner: 'Iowa', score: '31-7' },
+  2: { winner: 'Florida', score: '26-10' },
+}; // filled in as games are decided
+const WEEK13_TB_ACTUAL = 36; // Florida at Florida State (Game 2) is the designated Week 13 tiebreaker game
 const WEEK13_PLAYERS = computeWeekPlayers(WEEK13_DATA, WEEK13_RESULTS, WEEK13_TB_ACTUAL);
 
 // ---------- SEASON-WIDE COMBINATION (all weeks played so far) ----------
